@@ -30,8 +30,8 @@ export class CompaniesService {
     return `This action returns a #${id} company`;
   }
 
-  update(id: string, updateCompanyDto: UpdateCompanyDto,user:IUser) {
-    const update = this.companyModel.updateOne({_id:id},{
+  async update(id: string, updateCompanyDto: UpdateCompanyDto,user:IUser) {
+    const update =await this.companyModel.updateOne({_id:id},{
       ...updateCompanyDto,
       UpdatedBy:{
         _id:user._id,
