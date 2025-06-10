@@ -5,7 +5,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Company,CompanyDocument } from './schemas/company.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
-
+import aqp from 'api-query-params';
 @Injectable()
 export class CompaniesService {
   constructor(@InjectModel(Company.name) 
@@ -22,9 +22,40 @@ export class CompaniesService {
     }
   }
 
-  findAll() {
-    return `This action returns all companies`;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+  
+    // Xóa các trường không cần thiết nếu tồn tại
+    delete filter.page;
+    delete filter.limit;
+  
+    // Thiết lập mặc định
+    const page = currentPage || 1;
+    const defaultLimit = limit || 10;
+    const offset = (page - 1) * defaultLimit;
+  
+    const totalItems = await this.companyModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+  
+    const result = await this.companyModel
+      .find(filter, projection)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as { [key: string]: 1 | -1 })
+      .populate(population)
+      .exec();
+  
+    return {
+      data: result,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit: defaultLimit
+      }
+    };
   }
+  
 
   findOne(id: number) {
     return `This action returns a #${id} company`;
