@@ -7,21 +7,23 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './passport/jwt.strategy';
 import ms from 'ms';// CONVERT string to number day
+import { AuthController } from './auth.controller';
 
 @Module({
   imports:[UsersModule,PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('JWT_ACCESS_TOKEN'),
         signOptions: {
-            expiresIn: ms(configService.get<string>('JWT_EXPIRE')),
+            expiresIn: ms(configService.get<string>('JWT_EXPIRE_ACCESS_TOKEN')),
         },
       }),
       inject: [ConfigService],
     }),
   ],
   providers: [AuthService,LocalStrategy,JwtStrategy],
+  controllers: [AuthController],
   exports:[AuthService]
 })
 export class AuthModule {}

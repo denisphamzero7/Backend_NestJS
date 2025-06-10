@@ -16,7 +16,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     console.log('User found in validate:', user); // << Rất quan trọng!
     if (!user) {
       console.log('Authentication failed for user:', username); // << Thêm log này
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("username or password not valid");
     }
     return user;
   }

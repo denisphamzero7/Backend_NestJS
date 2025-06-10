@@ -17,6 +17,11 @@ async function bootstrap() {
 
   const port = configService.get<string>('PORT') || 3000;
   app.useGlobalPipes(new ValidationPipe());
+  app.enableCors({
+    "origin":"*",
+    "methods":"GET,HEAD,PUT,PATCH,POST,DELETE",
+    "preflightContinue":false,
+  })
   await app.listen(port);
   console.log(`Server is running at http://localhost:${port}`);
 }
