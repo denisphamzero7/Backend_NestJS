@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { error } from 'console';
 
 @Injectable()
 export class UsersService {
@@ -27,7 +28,22 @@ export class UsersService {
     });
     return user;
   }
-
+   async register(user: RegisterUserDto){
+    const {name,email,password,age,gender,address}=user;
+    const IsExist = await this.userModel.findOne({email})
+    if (IsExist) {
+      throw new ConflictException(`Email : ${email} already exists`);
+    }
+    const hashpassword= await this.gethashpassword(password);
+    let newRegister =  await this.userModel.create({
+      name,email,
+      password:hashpassword,
+      age,gender,address,role:"USER"
+    })
+    return {
+      data:newRegister 
+    } 
+   }
   async findAll() {
     const users = await this.userModel.find().select('-password');
     return users;

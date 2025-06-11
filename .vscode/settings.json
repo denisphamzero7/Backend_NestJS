@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "gethashpassword",
-        "hashpassword"
+        "hashpassword",
+        "refeshtoken",
+        "refreshtoken"
     ]
 }

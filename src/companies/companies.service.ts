@@ -42,7 +42,7 @@ export class CompaniesService {
       .find(filter, projection)
       .skip(offset)
       .limit(defaultLimit)
-      .sort(sort as { [key: string]: 1 | -1 })
+      .sort(sort as any)
       .populate(population)
       .exec();
   
