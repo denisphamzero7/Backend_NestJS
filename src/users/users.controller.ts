@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Public } from 'src/decorator/customize';
+import { IUser } from './user.interface';
 
 
 
@@ -40,7 +41,7 @@ export class UsersController {
   }
   @Public()
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  remove(@Param('id') id: string,user:IUser) {
+    return this.usersService.remove(id,user);
   }
 }

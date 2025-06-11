@@ -7,6 +7,7 @@ import mongoose, { Model } from 'mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { error } from 'console';
+import { IUser } from './user.interface';
 
 @Injectable()
 export class UsersService {
@@ -88,16 +89,20 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, user:IUser) {
     try {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return { message: 'id not valid' };
       }
-      const user = await this.userModel.softDelete({ _id: id });
-      if (!user) {
-        return 'User not found';
+    await this.userModel.updateOne({_id:id},{
+      deletedBy:{
+        _id:user._id,
+        email:user._id
       }
-      return { message: 'User deleted successfully' };
+    })
+    return this.userModel.softDelete({
+      _id: id
+    })
     } catch (error) {
       console.error(error);
       throw new Error('Internal server error');
