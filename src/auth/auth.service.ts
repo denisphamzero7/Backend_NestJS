@@ -3,12 +3,16 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/user.interface';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
+import ms from 'ms';
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async validateuser(username: string, pass: string): Promise<any> {
@@ -23,7 +27,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: IUser) {
+  async login(user: IUser,response:Response) {
     const { _id, name, email, role } = user;
     const payload = { 
         iss:"From server",
@@ -33,17 +37,31 @@ export class AuthService {
             email,
             role
      }; 
-     console.log('payload :::',payload);
-    return {
+     const refresh_token = this.createRefreshToken(payload)
+     await this.usersService.updateUserToken(refresh_token,_id)
+     // set cookies
+     response.cookie('refresh_token',refresh_token,{
+      httpOnly:true,
+      maxAge:ms(this.configService.get<string>("JWT_EXPIRE_REFRESH_TOKEN_SECRET"))
+     })
+    return { 
       access_token: this.jwtService.sign(payload),
-      _id,
+      refresh_token,
+     user:{ _id,
       name,
       email,
-      role
+      role}
     };
   }
   async register (user: RegisterUserDto){
     let newUser = await this.usersService.register(user);
     return newUser
+  }
+  createRefreshToken =(payload)=>{
+    const refresh_token = this.jwtService.sign(payload,{
+      secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
+      expiresIn:ms(this.configService.get<string>("JWT_EXPIRE_REFRESH_TOKEN_SECRET"))/1000
+    })
+    return refresh_token 
   }
 }

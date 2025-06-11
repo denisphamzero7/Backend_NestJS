@@ -108,4 +108,8 @@ export class UsersService {
       throw new Error('Internal server error');
     }
   }
+  
+updateUserToken = async(refreshToken:string,_id:string)=>{
+  return await this.userModel.updateOne({_id},{refreshToken})
+}
 }
