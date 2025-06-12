@@ -19,7 +19,11 @@ async function bootstrap() {
   app.setViewEngine('ejs');
   
   const port = configService.get<string>('PORT') || 3000;
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes( new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }),);
   app.use(cookieParser());
   app.enableCors({
     "origin":"*",

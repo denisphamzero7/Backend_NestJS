@@ -54,7 +54,7 @@ export class JobsService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid ID format');
     }
@@ -62,13 +62,14 @@ export class JobsService {
   }
 
   async update(id: string, updateJobDto: UpdateJobDto,user:IUser) {
-    const update =await this.jobModel.updateOne({_id:id},{
+    const update =await this.jobModel.findByIdAndUpdate({_id:id},{
       ...updateJobDto,
       UpdatedBy:{
         _id:user._id,
         email:user.email
       }
     })
+    console.log("update: ", update);
     return update
   }
 

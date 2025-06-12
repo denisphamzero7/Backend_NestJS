@@ -28,12 +28,15 @@ export class JobsController {
   @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.jobsService.findOne(+id);
+    return this.jobsService.findOne(id);
   }
   @ResponseMessage("Updated a job successful")
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @User() user:IUser ) {
-    return this.jobsService.update(id,updateJobDto,user);
+  async update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @User() user:IUser ) {
+    const data = await this.jobsService.update(id,updateJobDto,user)
+    console.log(data);
+    return data
+    // return this.jobsService.update(id,updateJobDto,user);
   }
 
   @Delete(':id')
