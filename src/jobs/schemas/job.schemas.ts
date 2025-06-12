@@ -55,7 +55,7 @@ export class Job {
 
 
   @Prop({ type: Object }) 
-  deleteBy: {
+  deletedBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
