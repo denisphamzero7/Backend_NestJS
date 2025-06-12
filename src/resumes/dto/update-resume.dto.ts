@@ -12,7 +12,7 @@ class UpdateBy{
     email:string
 }
 
-class history{
+class History{
     @IsNotEmpty()
     status:string;
     

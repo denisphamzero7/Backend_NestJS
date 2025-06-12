@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateResumeDto, CreateUserCvDto } from './dto/create-resume.dto';
+import { CreateResumeDto, CreateUserCvDto, } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { Resume, ResumeDocument } from './schemas/resume.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import { User } from 'src/decorator/customize';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class ResumesService {
@@ -43,18 +44,77 @@ export class ResumesService {
   };
   }
 
-  findAll() {
-    return `This action returns all resumes`;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+  
+
+    delete filter.page;
+    delete filter.limit;
+  
+
+    const page = currentPage || 1;
+    const defaultLimit = limit || 10;
+    const offset = (page - 1) * defaultLimit;
+  
+    const totalItems = await this.resumeModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+  
+    const result = await this.resumeModel
+      .find(filter, projection)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+  
+    return {
+      data: result,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit: defaultLimit
+      }
+    };
   }
+  
 
   findOne(id: number) {
     return `This action returns a #${id} resume`;
   }
 
-  update(id: number, updateResumeDto: UpdateResumeDto) {
-    return `This action updates a #${id} resume`;
+  async update(id: string, updateResumeDto: UpdateResumeDto, user: IUser) {
+    const result = await this.resumeModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          status: updateResumeDto.status,
+          updatedBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        },
+        $push: {
+          history: {
+            status: updateResumeDto.status,
+            updatedAt: new Date(),
+            updatedBy: {
+              _id: user._id,
+              email: user.email,
+            },
+          },
+        },
+      }
+    );
+  
+    if (result.modifiedCount === 0) {
+      throw new Error('Resume not found or nothing updated');
+    }
+  
+    return {
+      message: 'Resume updated successfully',
+    };
   }
-
   remove(id: number) {
     return `This action removes a #${id} resume`;
   }
