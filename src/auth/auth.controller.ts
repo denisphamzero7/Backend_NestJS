@@ -1,12 +1,13 @@
 
-import { Controller,Post,UseGuards,Request, Get, Body, Req, Res } from '@nestjs/common';
-import { Public, ResponseMessage } from 'src/decorator/customize';
+import { Controller,Post,UseGuards, Get, Body, Req, Res } from '@nestjs/common';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { PassThrough } from 'stream';
-import { Response } from 'express';
+import { Request, Response,  } from 'express'; 
+import { IUser } from 'src/users/user.interface';
 
 
 
@@ -25,7 +26,7 @@ export class AuthController {
   @Post('/login')
   handelogin(
     @Req() req,
-   @Res({passthrough:true}) response :Response){
+    @Res({passthrough:true}) response :Response){
     return this.authService.login(req.user,response);
   }
   @Public()
@@ -36,7 +37,15 @@ export class AuthController {
   }
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
+  getProfile(@User() user:IUser) {
+    return user;
+  }
+  @ResponseMessage("refreshtoken success")
+  @Get('refresh')
+  @Public()
+  handlerefreshtoken(@Req() request:Request,@Res({passthrough:true}) response :Response){
+    const refresh_token = request.cookies["refresh_token"];
+    response.clearCookie('refresh_token');
+    return this.authService.procesnewToken(refresh_token,response)
   }
 }

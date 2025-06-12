@@ -71,6 +71,8 @@ createdAt: Date;
 @Prop()
 updatedAt: Date;
 
+@Prop()
+refreshToken:string
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

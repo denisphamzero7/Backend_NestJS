@@ -38,11 +38,12 @@ export class AuthService {
             role
      }; 
      const refresh_token = this.createRefreshToken(payload)
+     // tạo refreshhtoken
      await this.usersService.updateUserToken(refresh_token,_id)
      // set cookies
      response.cookie('refresh_token',refresh_token,{
       httpOnly:true,
-      maxAge:ms(this.configService.get<string>("JWT_EXPIRE_REFRESH_TOKEN_SECRET"))
+      maxAge:ms(this.configService.get<string>("REFRESH_TOKEN_EXPIRE"))
      })
     return { 
       access_token: this.jwtService.sign(payload),
@@ -59,9 +60,60 @@ export class AuthService {
   }
   createRefreshToken =(payload)=>{
     const refresh_token = this.jwtService.sign(payload,{
-      secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
-      expiresIn:ms(this.configService.get<string>("JWT_EXPIRE_REFRESH_TOKEN_SECRET"))/1000
+      secret: this.configService.get<string>("REFRESH_TOKEN_SECRET"),
+      expiresIn:ms(this.configService.get<string>("REFRESH_TOKEN_EXPIRE"))/1000
     })
     return refresh_token 
+  }
+   procesnewToken=async (refreshToken: string, response:Response)=>{
+    try {
+      // Xác thực token
+      this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>("REFRESH_TOKEN_SECRET"),
+      });
+  
+      const user = await this.usersService.findUserByToken(refreshToken);
+  
+      if (!user) {
+        throw new UnauthorizedException('User không tồn tại hoặc token không đúng');
+      }
+  
+      const { _id, name, email, role } = user;
+      const payload = {
+        iss: "From server",
+        sub: "token refresh",
+        _id,
+        name,
+        email,
+        role,
+      };
+  
+      const refresh_token = this.createRefreshToken(payload);
+  
+      await this.usersService.updateUserToken(refresh_token, _id.toString());
+  
+      // // Xoá token cũ
+      // response.clearCookie('refresh_token');
+  
+      // Gán lại cookie mới
+      response.cookie('refresh_token', refresh_token, {
+        httpOnly: true,
+        maxAge: ms(this.configService.get<string>("REFRESH_TOKEN_EXPIRE")) * 1000,
+      });
+  
+      return {
+        access_token: this.jwtService.sign(payload),
+        refresh_token,
+        user: {
+          _id,
+          name,
+          email,
+          role,
+        },
+      };
+    } catch (error) {
+      console.error('Refresh token error:', error.message);
+      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+    }
   }
 }
