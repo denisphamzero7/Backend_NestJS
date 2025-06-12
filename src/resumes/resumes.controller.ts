@@ -24,7 +24,7 @@ export class ResumesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.resumesService.findOne(+id);
+    return this.resumesService.findOne(id);
   }
 
   @Patch(':id')

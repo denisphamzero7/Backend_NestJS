@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateResumeDto, CreateUserCvDto, } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { Resume, ResumeDocument } from './schemas/resume.schema';
@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import { User } from 'src/decorator/customize';
 import aqp from 'api-query-params';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ResumesService {
@@ -79,8 +80,12 @@ export class ResumesService {
   }
   
 
-  findOne(id: number) {
-    return `This action returns a #${id} resume`;
+  async findOne(id:string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid ID format');
+    }
+    return await this.resumeModel.findOne({_id:id});
+
   }
 
   async update(id: string, updateResumeDto: UpdateResumeDto, user: IUser) {
