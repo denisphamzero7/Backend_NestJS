@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Job, JobDocument } from './schemas/job.schemas';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import aqp from 'api-query-params';
+import { Types } from 'mongoose';
+import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class JobsService {
@@ -42,7 +44,7 @@ export class JobsService {
       .exec();
   
     return {
-      data: result,
+      result,
       pagination: {
         totalItems,
         totalPages,
@@ -52,12 +54,22 @@ export class JobsService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} job`;
+  async findOne(id: number) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid ID format');
+    }
+    return await this.jobModel.findOne({_id:id});
   }
 
-  update(id: number, updateJobDto: UpdateJobDto) {
-    return `This action updates a #${id} job`;
+  async update(id: string, updateJobDto: UpdateJobDto,user:IUser) {
+    const update =await this.jobModel.updateOne({_id:id},{
+      ...updateJobDto,
+      UpdatedBy:{
+        _id:user._id,
+        email:user.email
+      }
+    })
+    return update
   }
 
   remove(id: number) {

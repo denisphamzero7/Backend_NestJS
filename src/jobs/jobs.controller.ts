@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { Public, ResponseMessage } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
+import { IUser } from 'src/users/user.interface';
 
 @Controller('jobs')
 export class JobsController {
@@ -24,15 +25,15 @@ export class JobsController {
     return this.jobsService.findAll(+currentPage,+limit,qs);
   }
 
-
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.jobsService.findOne(+id);
   }
-
+  @ResponseMessage("Updated a job successful")
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto) {
-    return this.jobsService.update(+id, updateJobDto);
+  update(@Param('id') id: string, @Body() updateJobDto: UpdateJobDto, @User() user:IUser ) {
+    return this.jobsService.update(id,updateJobDto,user);
   }
 
   @Delete(':id')
