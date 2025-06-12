@@ -33,7 +33,7 @@ export class ResumesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.resumesService.remove(+id);
+  remove(@Param('id') id: string,@User() user:IUser) {
+    return this.resumesService.remove(id,user);
   }
 }

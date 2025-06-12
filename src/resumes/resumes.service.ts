@@ -120,7 +120,15 @@ export class ResumesService {
       message: 'Resume updated successfully',
     };
   }
-  remove(id: number) {
-    return `This action removes a #${id} resume`;
+  async remove(id: string,user:IUser) {
+    await this.resumeModel.updateOne({_id:id},{
+      deletedBy:{
+        _id:user._id,
+        email:user.email
+      }
+    })
+    return this.resumeModel.softDelete({
+      _id:id
+    })
   }
 }
