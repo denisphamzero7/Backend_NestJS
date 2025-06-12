@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Job, JobDocument } from './schemas/job.schemas';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 
 @Injectable()
 export class JobsService {
-  create(createJobDto: CreateJobDto) {
-    return 'This action adds a new job';
+  constructor(@InjectModel(Job.name) 
+  private jobModel: SoftDeleteModel<JobDocument>) {}
+  async create(createJobDto: CreateJobDto) {
+    const {name,skills,company,location,salary,quantity,level,description,startDate,endDate,isActive}=createJobDto
+    const newJob = await this.jobModel.create({
+      name,skills,company,location,salary,quantity,level,description,startDate,endDate,isActive
+    })
+    return newJob
   }
 
   findAll() {

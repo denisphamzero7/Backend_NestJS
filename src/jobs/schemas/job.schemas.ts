@@ -3,36 +3,58 @@ import mongoose, { HydratedDocument } from 'mongoose';
 
 export type JobDocument = HydratedDocument<Job>;
 
+
 @Schema({ timestamps: true })
 export class Job {
   @Prop({ required: true })
   name: string;
 
   @Prop()
-  skills: string [ ] 
+  skills: string [] 
   
-  @Prop({ required: true })
-  address: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Company' })
+  company: mongoose.Schema.Types.ObjectId;
+
+
 
   @Prop()
   description: string;
 
-  // Fix: Define the type for createBy
-  @Prop({ type: Object }) // Or define a sub-schema if createBy becomes more complex
+  @Prop()
+  location: string
+ 
+  @Prop()
+  level: string
+
+  @Prop()
+  startDate: Date
+
+  @Prop()
+  endDate: Date
+
+  @Prop()
+  quantity: number
+
+  @Prop()
+  salary: number
+
+  @Prop()
+  isActive: boolean
+
+  @Prop({ type: Object }) 
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  // Fix: Define the type for updatedBy
-  @Prop({ type: Object }) // Or define a sub-schema
+  @Prop({ type: Object }) 
   updatedBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  // Fix: Define the type for deleteBy
-  @Prop({ type: Object }) // Or define a sub-schema
+
+  @Prop({ type: Object }) 
   deleteBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
