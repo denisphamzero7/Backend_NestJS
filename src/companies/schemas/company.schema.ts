@@ -10,7 +10,10 @@ export class Company {
 
   @Prop({ required: true })
   address: string;
-
+  
+  @Prop()
+  logo: string;
+  
   @Prop()
   description: string;
 
