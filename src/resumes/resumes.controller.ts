@@ -21,7 +21,7 @@ export class ResumesController {
   @Query() qs:string) {
     return this.resumesService.findAll(+currentPage,+limit,qs);
   }
-
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.resumesService.findOne(id);
