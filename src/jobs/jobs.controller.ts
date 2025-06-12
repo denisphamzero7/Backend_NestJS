@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { ResponseMessage } from 'src/decorator/customize';
+import { Public, ResponseMessage } from 'src/decorator/customize';
 
 @Controller('jobs')
 export class JobsController {
@@ -12,11 +12,18 @@ export class JobsController {
   create(@Body() createJobDto: CreateJobDto) {
     return this.jobsService.create(createJobDto);
   }
-
+   
+  @Public()
   @Get()
-  findAll() {
-    return this.jobsService.findAll();
+  @ResponseMessage("get list jobs")
+  findAll(@Query("page") currentPage:string,
+  @Query("limit") limit:string,
+  @Query() qs:string
+) {
+    
+    return this.jobsService.findAll(+currentPage,+limit,qs);
   }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {
