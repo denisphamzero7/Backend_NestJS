@@ -8,6 +8,7 @@ import { IUser } from 'src/users/user.interface';
 import { User } from 'src/decorator/customize';
 import mongoose from 'mongoose';
 import aqp from 'api-query-params';
+import { throwError } from 'rxjs';
 
 @Injectable()
 export class RolesService {
@@ -73,8 +74,22 @@ export class RolesService {
     return await this.roleModel.findOne({_id:id});
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+ async update(id: string, updateRoleDto: UpdateRoleDto,user:IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return 'not found role';
+    }
+    const{name, description, isActive, permissions} = updateRoleDto;
+    const IsExist = await this.roleModel.findOne({name})
+    if(IsExist){
+      throw new BadRequestException(`role with name=${name} is exist`)
+    }
+    const updateRole = await this.roleModel.updateOne({_id:id},{
+      name, description, isActive, permissions, updatedBy:{
+        _id:user._id,
+        email:user.email
+      }
+    })
+    return updateRole
   }
 
   remove(id: number) {
