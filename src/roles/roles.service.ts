@@ -15,7 +15,7 @@ export class RolesService {
   constructor(@InjectModel(Role.name) 
   private roleModel: SoftDeleteModel<RoleDocument>) {}
 
-   async create(createRoleDto: CreateRoleDto, @User() user:IUser) {
+   async create(createRoleDto: CreateRoleDto,user:IUser) {
       const {name,description,isActive,permissions}= createRoleDto;
      const IsExit  = await this.roleModel.findOne({name})
      if(IsExit){

@@ -10,7 +10,7 @@ export class Role {
   name: string;
   
   @Prop({type:[mongoose.Schema.Types.ObjectId],ref: Permission.name})
-  permission: Permission[];
+  permissions: Permission[];
 
   @Prop()
   description: string;
