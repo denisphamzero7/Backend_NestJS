@@ -2,24 +2,26 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { IUser } from 'src/users/user.interface';
+import { ResponseMessage, User } from 'src/decorator/customize';
 
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
-
+  @ResponseMessage("Create a new role")
   @Post()
-  create(@Body() createRoleDto: CreateRoleDto) {
-    return this.rolesService.create(createRoleDto);
+  create(@Body() createRoleDto: CreateRoleDto, @User() user:IUser) {
+    return this.rolesService.create(createRoleDto,user);
   }
 
-  @Get()
+  @ResponseMessage("Get all role")  @Get()
   findAll() {
-    return this.rolesService.findAll();
+    return this.rolesService.findAll();  
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.rolesService.findOne(+id);
+    return this.rolesService.findOne(id);
   }
 
   @Patch(':id')
