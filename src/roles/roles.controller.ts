@@ -16,7 +16,6 @@ export class RolesController {
 
   @ResponseMessage("Get all role") 
   @Get()
-  @ResponseMessage("get list jobs")
   findAll(@Query("page") currentPage:string,
   @Query("limit") limit:string,
   @Query() qs:string
