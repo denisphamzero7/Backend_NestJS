@@ -14,7 +14,7 @@ export class RolesController {
     return this.rolesService.create(createRoleDto,user);
   }
 
-  @ResponseMessage("Get all role")  @Get()
+  @ResponseMessage("Get all role") 
   @Get()
   @ResponseMessage("get list jobs")
   findAll(@Query("page") currentPage:string,
