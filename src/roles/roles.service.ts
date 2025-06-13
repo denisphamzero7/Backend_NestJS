@@ -7,6 +7,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
 import { User } from 'src/decorator/customize';
 import mongoose from 'mongoose';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class RolesService {
@@ -30,10 +31,41 @@ export class RolesService {
 
   }
 
-  findAll() {
-    return `This action returns all roles`;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+  
+
+    delete filter.page;
+    delete filter.limit;
+  
+
+    const page = currentPage || 1;
+    const defaultLimit = limit || 10;
+    const offset = (page - 1) * defaultLimit;
+  
+    const totalItems = await this.roleModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+  
+    const result = await this.roleModel
+      .find(filter, projection)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+  
+    return {
+      result,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit: defaultLimit
+      }
+    };
   }
 
+ 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return 'id not valid';
