@@ -73,7 +73,7 @@ export class RolesService {
     }
     return await this.roleModel.findOne({ _id: id }).populate({
       path: 'permissions',
-      select: { _id: 1, apiPath: 1, method: 1 }
+      select: { _id: 1, apiPath: 1, method: 1,module:1 }
     });
   }
 
@@ -82,10 +82,10 @@ export class RolesService {
       return 'not found role';
     }
     const{name, description, isActive, permissions} = updateRoleDto;
-    const IsExist = await this.roleModel.findOne({name})
-    if(IsExist){
-      throw new BadRequestException(`role with name=${name} is exist`)
-    }
+    // const IsExist = await this.roleModel.findOne({name})
+    // if(IsExist){
+    //   throw new BadRequestException(`role with name=${name} is exist`)
+    // }
     const updateRole = await this.roleModel.updateOne({_id:id},{
       name, description, isActive, permissions, updatedBy:{
         _id:user._id,

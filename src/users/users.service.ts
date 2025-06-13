@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -94,6 +94,11 @@ export class UsersService {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return { message: 'id not valid' };
       }
+      const founduser = await this.userModel.findById(id)
+             if(founduser.email==="admin@gmail.com")
+              {
+                throw new BadRequestException("not delete Admin !!!!!")
+              }
     await this.userModel.updateOne({_id:id},{
       deletedBy:{
         _id:user._id,
