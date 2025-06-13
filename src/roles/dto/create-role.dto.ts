@@ -15,6 +15,6 @@ export class CreateRoleDto {
     @IsNotEmpty({message:"permission not empty"})
     @IsMongoId({each:true,message:"each permissions is mongo object id"})
     @IsArray({message:'permissions is array'})
-    permission:mongoose.Schema.Types.ObjectId[];
+    permissions:mongoose.Schema.Types.ObjectId[];
 
 }
