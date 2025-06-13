@@ -6,8 +6,9 @@ import { User, UserDocument } from './schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { error } from 'console';
+
 import { IUser } from './user.interface';
+
 
 @Injectable()
 export class UsersService {
@@ -63,7 +64,7 @@ export class UsersService {
     }
   }
   async findOneByUserName(username: string) {
-    return this.userModel.findOne({email:username})
+    return (await this.userModel.findOne({email:username})).populate({path:"role",select:{name:1,permissions:1}})
   }
  async Isvalidpassword(password: string, hash:string){
      return compareSync(password, hash); // true

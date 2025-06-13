@@ -36,6 +36,7 @@ import { RolesModule } from './roles/roles.module';
     ResumesModule,
     PermissionsModule,
     RolesModule,
+
   ],
   controllers: [AppController],
   providers: [AppService,
