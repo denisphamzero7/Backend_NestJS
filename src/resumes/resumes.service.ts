@@ -116,9 +116,8 @@ export class ResumesService {
       throw new Error('Resume not found or nothing updated');
     }
   
-    return {
-      message: 'Resume updated successfully',
-    };
+    return result
+  
   }
   async remove(id: string,user:IUser) {
     await this.resumeModel.updateOne({_id:id},{
