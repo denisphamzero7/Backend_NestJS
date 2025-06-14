@@ -9,6 +9,7 @@ export class CreateRoleDto {
     @IsNotEmpty({message:"Name is not empty"})
     isActive:boolean; 
 
+
     @IsNotEmpty({message:"description is not empty"})
     description: string;
     

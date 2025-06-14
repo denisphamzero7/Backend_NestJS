@@ -56,7 +56,7 @@ export class UsersService {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return 'User not found';
       }
-      const user = await this.userModel.findOne({ _id: id }).select('-password');
+      const user = await this.userModel.findOne({ _id: id }).populate({ path: 'role', select: 'name permissions' }) .select('-password');
       return user;
     } catch (error) {
       console.error(error);
@@ -64,7 +64,9 @@ export class UsersService {
     }
   }
   async findOneByUserName(username: string) {
-    return (await this.userModel.findOne({email:username})).populate({path:"role",select:{name:1,permissions:1}})
+    return await this.userModel
+    .findOne({ email: username })
+    .populate({ path: 'role', select: { name: 1, permissions: 1 } });
   }
  async Isvalidpassword(password: string, hash:string){
      return compareSync(password, hash); // true
@@ -117,9 +119,9 @@ export class UsersService {
   
 updateUserToken = async(refreshToken:string,_id:string)=>{
   return await this.userModel.updateOne({_id},
-    {refreshToken})
+    {refreshToken}).populate({ path: 'role', select: { name: 1, permissions: 1 } });
 }
 findUserByToken = async (refreshToken:string)=>{
-  return await this.userModel.findOne({refreshToken})
+  return await this.userModel.findOne({refreshToken}).populate({ path: 'role', select: { name: 1, permissions: 1 } });
 }
 }

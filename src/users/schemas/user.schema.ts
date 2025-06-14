@@ -20,9 +20,6 @@ export class User {
   password: string;
  
   @Prop()
-  refreshtoken:string
-
-  @Prop()
   gender: string
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })

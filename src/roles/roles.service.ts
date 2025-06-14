@@ -69,11 +69,12 @@ export class RolesService {
  
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return 'id not valid';
+      return null;
     }
+  
     return await this.roleModel.findOne({ _id: id }).populate({
       path: 'permissions',
-      select: { _id: 1, apiPath: 1, method: 1,module:1 }
+      select: { _id: 1, apiPath: 1, method: 1, module: 1 }
     });
   }
 
@@ -87,7 +88,7 @@ export class RolesService {
     //   throw new BadRequestException(`role with name=${name} is exist`)
     // }
     const updateRole = await this.roleModel.updateOne({_id:id},{
-      name, description, isActive, permissions, updatedBy:{
+      name, description, isActive, permissions,updatedBy:{
         _id:user._id,
         email:user.email
       }
