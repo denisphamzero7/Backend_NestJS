@@ -28,7 +28,7 @@ export class AuthService {
         if (user.role) {
           const userRole = user.role as unknown as { _id: string; name: string };
           console.log("user role <<<<<<: ",userRole);
-          const temp = await this.rolesService.findOne(userRole._id);
+          const temp = (await this.rolesService.findOne(userRole._id));
           permissions = temp?.permissions ?? [];
         }
   
