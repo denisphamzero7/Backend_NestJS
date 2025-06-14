@@ -14,7 +14,7 @@ export class SubscribersService {
   constructor(@InjectModel(Subscriber.name) 
   private subscriberModel: SoftDeleteModel<SubscriberDocument>) {}
   create(createSubscriberDto: CreateSubscriberDto,user:IUser) {
-    const newsubscriber = this.subscriberModel.create({...createSubscriberDto,createBy:{
+    const newsubscriber = this.subscriberModel.create({...createSubscriberDto,createdBy:{
       _id:user._id,
       email:user.email
     }})
@@ -62,8 +62,16 @@ export class SubscribersService {
   
     return await this.subscriberModel.findOne({ _id: id });
   }
-  update(id: number, updateSubscriberDto: UpdateSubscriberDto) {
-    return `This action updates a #${id} subscriber`;
+ async update(id: string, updateSubscriberDto: UpdateSubscriberDto,user:IUser) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return 'not found role';
+  }
+    const {name,email,skills}=updateSubscriberDto
+    const updateSubscriber = await this.subscriberModel.updateOne({_id:id},{name,email,skills,updatedBy:{
+      _id:user._id,
+      email:user.email
+    }})
+    return updateSubscriber
   }
 
   remove(id: number) {

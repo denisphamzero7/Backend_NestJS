@@ -29,8 +29,8 @@ export class SubscribersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubscriberDto: UpdateSubscriberDto) {
-    return this.subscribersService.update(+id, updateSubscriberDto);
+  update(@Param('id') id: string, @Body() updateSubscriberDto: UpdateSubscriberDto,@User() user:IUser) {
+    return this.subscribersService.update(id, updateSubscriberDto,user);
   }
 
   @Delete(':id')

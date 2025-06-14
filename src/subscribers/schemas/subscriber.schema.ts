@@ -16,7 +16,7 @@ export class Subscriber {
   isActive:boolean;
   
   @Prop({ type: Object }) 
-  createBy: {
+  createdBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
