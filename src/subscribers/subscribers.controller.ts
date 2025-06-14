@@ -35,6 +35,6 @@ export class SubscribersController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.subscribersService.remove(+id);
+    return this.subscribersService.remove(id);
   }
 }

@@ -74,7 +74,13 @@ export class SubscribersService {
     return updateSubscriber
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} subscriber`;
+async remove(id: string) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return { message: 'Invalid ID' };
+  }
+
+  const deleted = await this.subscriberModel.softDelete({ _id: id });
+
+  return deleted;
   }
 }
