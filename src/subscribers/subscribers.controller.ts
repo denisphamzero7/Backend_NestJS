@@ -8,7 +8,7 @@ import { IUser } from 'src/users/user.interface';
 @Controller('subscribers')
 export class SubscribersController {
   constructor(private readonly subscribersService: SubscribersService) {}
-  @Public()
+
   @ResponseMessage("Create a new Subscriber")
   @Post()
   create(@Body() createSubscriberDto: CreateSubscriberDto,@User() user:IUser) {

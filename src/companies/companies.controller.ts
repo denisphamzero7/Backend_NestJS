@@ -4,7 +4,7 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
-import { query } from 'express';
+
 
 
 @Controller('companies')

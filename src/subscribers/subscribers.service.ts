@@ -15,8 +15,8 @@ export class SubscribersService {
   private subscriberModel: SoftDeleteModel<SubscriberDocument>) {}
   create(createSubscriberDto: CreateSubscriberDto,user:IUser) {
     const newsubscriber = this.subscriberModel.create({...createSubscriberDto,createdBy:{
-      _id:user._id,
-      email:user.email
+      _id:user?._id,
+      email:user?.email
     }})
     return newsubscriber
   }

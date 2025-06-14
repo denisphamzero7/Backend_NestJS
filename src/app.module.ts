@@ -14,6 +14,7 @@ import { ResumesModule } from './resumes/resumes.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { RolesModule } from './roles/roles.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
+import { MailModule } from './mail/mail.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -38,6 +39,7 @@ import { SubscribersModule } from './subscribers/subscribers.module';
     PermissionsModule,
     RolesModule,
     SubscribersModule,
+    MailModule,
 
   ],
   controllers: [AppController],
