@@ -25,7 +25,7 @@ export class SubscribersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.subscribersService.findOne(+id);
+    return this.subscribersService.findOne(id);
   }
 
   @Patch(':id')
