@@ -12,6 +12,9 @@ export class Permission {
   apiPath: string;
 
   @Prop()
+  method: string;
+
+  @Prop()
   module: string;
 
   

@@ -74,7 +74,7 @@ export class PermissionsService {
   async update(id: string, updatePermissionDto: UpdatePermissionDto,user:IUser) {
     const update =await this.permissionModel.updateOne({_id:id},{
       ...updatePermissionDto,
-      UpdatedBy:{
+      updatedBy:{
         _id:user._id,
         email:user.email
       }

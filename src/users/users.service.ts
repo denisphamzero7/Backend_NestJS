@@ -30,7 +30,7 @@ export class UsersService {
     return user;
   }
    async register(user: RegisterUserDto){
-    const {name,email,password,age,gender,address}=user;
+    const {name,email,password,age,gender,address,role}=user;
     const IsExist = await this.userModel.findOne({email})
     if (IsExist) {
       throw new ConflictException(`Email : ${email} already exists`);
@@ -39,7 +39,7 @@ export class UsersService {
     let newRegister =  await this.userModel.create({
       name,email,
       password:hashpassword,
-      age,gender,address,role:"USER"
+      age,gender,address,role
     })
     return {
       data:newRegister 
