@@ -49,7 +49,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     )
 
     if(targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
-    if(isExist){
+    if(!isExist){
       throw new BadRequestException("not allow access endpoint!!!!!");
     }
     return user;
