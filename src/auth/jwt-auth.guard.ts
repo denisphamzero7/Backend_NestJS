@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from 'src/decorator/customize';
+import { IS_PUBLIC_KEY,IS_PUBLIC_PERMISSION } from 'src/decorator/customize';
 import { Request } from 'express';
 
 @Injectable()
@@ -29,6 +29,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(err, user, info,context: ExecutionContext) {
     console.log('JwtAuthGuard handleRequest - error:', err, 'user:', user, 'info:', info); // << Log chi tiết hơn
     const request: Request = context.switchToHttp().getRequest();
+    const isSkipPermisson = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_PERMISSION, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (err || !user) {
       throw err || new UnauthorizedException("token not valid!!!");
     }
@@ -49,7 +53,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     )
 
     if(targetEndpoint.startsWith("/api/v1/auth")) isExist = true;
-    if(isExist){
+    if(!isExist&&!isSkipPermisson){
       throw new BadRequestException("not allow access endpoint!!!!!");
     }
     return user;
