@@ -29,11 +29,9 @@ import {
     @IsString({ each: true, message: 'Each skill must be a string' })
     skills: string[];
   
-    @IsNotEmptyObject()
-    @IsObject({ message: 'Company must be an object' })
-    @ValidateNested()
-    @Type(() => Company)
-    company: Company;
+    @IsNotEmpty({ message: 'Company ID must not be empty' })
+    @IsString({ message: 'Company ID must be a string' })
+    company: string
   
     @IsOptional()
     @IsString({ message: 'Location must be a string' })

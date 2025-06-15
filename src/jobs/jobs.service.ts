@@ -58,13 +58,13 @@ export class JobsService {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid ID format');
     }
-    return await this.jobModel.findOne({_id:id});
+    return await this.jobModel.findOne({_id:id}).populate('company');
   }
 
   async update(id: string, updateJobDto: UpdateJobDto,user:IUser) {
     const update =await this.jobModel.findByIdAndUpdate({_id:id},{
       ...updateJobDto,
-      UpdatedBy:{
+      updatedBy:{
         _id:user._id,
         email:user.email
       }
