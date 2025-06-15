@@ -16,7 +16,6 @@ export class Job {
   company: mongoose.Schema.Types.ObjectId;
 
 
-
   @Prop()
   description: string;
 
