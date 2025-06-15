@@ -48,4 +48,10 @@ export class AuthController {
     response.clearCookie('refresh_token');
     return this.authService.procesnewToken(refresh_token,response)
   }
+  @ResponseMessage("Logout successful")
+  @Post('/logout') 
+  @UseGuards(JwtAuthGuard) 
+  async handlelogout(@Res({ passthrough: true }) response: Response, @User() user: IUser) {
+    return this.authService.logout(response, user);
+  }
 }

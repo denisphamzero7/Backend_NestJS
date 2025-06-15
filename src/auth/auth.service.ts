@@ -113,7 +113,12 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Refresh token error:', error.message);
-      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+      throw new UnauthorizedException('Refresh token error');
     }
+  }
+  async logout (response:Response,user:IUser){
+    await this.usersService.updateUserToken("",user._id.toString())
+    response.clearCookie('refresh_token');
+    return true
   }
 }
