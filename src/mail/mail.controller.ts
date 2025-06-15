@@ -6,11 +6,9 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Subscriber, SubscriberDocument } from 'src/subscribers/schemas/subscriber.schema';
 import { Job, JobDocument } from 'src/jobs/schemas/job.schemas';
 import { InjectModel } from '@nestjs/mongoose';
-import { Company } from 'src/companies/schemas/company.schema';
+
 import { Cron, CronExpression } from '@nestjs/schedule';
-interface PopulatedJobDocument extends JobDocument {
-  company: Company; // Now 'company' is of type Company, not ObjectId
-}
+
 
 @Controller('mail')
 export class MailController {
