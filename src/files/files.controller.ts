@@ -8,20 +8,28 @@ import { Public } from 'src/decorator/customize';
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) { }
+  // @Public()
+  // @Post('upload')
+  // @UseInterceptors(FileInterceptor('file'))
+  // uploadFile(@UploadedFile(new ParseFilePipeBuilder()
+  //   .addFileTypeValidator({
+  //     fileType: /^(jpg|jpeg|png|image\/png|gif|txt|application\/pdf|doc|docx|text\/plain)$/i,
+  //   })
+  //   .addMaxSizeValidator({
+  //     maxSize: 357 * 1024
+  //   })
+  //   .build({
+  //     errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+  //   }),
+  // ) file: Express.Multer.File) {
+  //   return {
+  //     filName: file.filename
+  //   }
+  // }
   @Public()
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(@UploadedFile(new ParseFilePipeBuilder()
-    .addFileTypeValidator({
-      fileType: /^(jpg|jpeg|png|image\/png|gif|txt|application\/pdf|doc|docx|text\/plain)$/i,
-    })
-    .addMaxSizeValidator({
-      maxSize: 357 * 1024
-    })
-    .build({
-      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-    }),
-  ) file: Express.Multer.File) {
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
     return {
       filName: file.filename
     }
