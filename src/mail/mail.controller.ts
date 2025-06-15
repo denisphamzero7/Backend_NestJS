@@ -7,6 +7,7 @@ import { Subscriber, SubscriberDocument } from 'src/subscribers/schemas/subscrib
 import { Job, JobDocument } from 'src/jobs/schemas/job.schemas';
 import { InjectModel } from '@nestjs/mongoose';
 import { Company } from 'src/companies/schemas/company.schema';
+import { Cron, CronExpression } from '@nestjs/schedule';
 interface PopulatedJobDocument extends JobDocument {
   company: Company; // Now 'company' is of type Company, not ObjectId
 }
@@ -19,7 +20,7 @@ export class MailController {
     private subscriberModel: SoftDeleteModel<SubscriberDocument>,
     @InjectModel(Job.name) 
     private jobModel: SoftDeleteModel<JobDocument>) {}
-  
+  @Cron("0 10 0 * * 0")// 0 giờ 10 phút mỗi ngày
   @Get()
   @Public()
   @ResponseMessage("Test email")
@@ -77,4 +78,10 @@ export class MailController {
   }
 
 }
+
+// @Cron(CronExpression.EVERY_30_SECONDS)
+// getcon(){
+//   console.log("text");
+// }
+
 }
