@@ -28,7 +28,7 @@ export class ResumesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body('status') updateResumeDto: UpdateResumeDto, @User() user:IUser) {
+  update(@Param('id') id: string, @Body() updateResumeDto: UpdateResumeDto, @User() user:IUser) {
     return this.resumesService.update(id, updateResumeDto,user);
   }
 
