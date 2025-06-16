@@ -121,4 +121,28 @@ export class AuthService {
     response.clearCookie('refresh_token');
     return true
   }
+  async changePassword(id: string, oldPassword: string, newPassword: string) {
+    // Tìm user đầy đủ (bao gồm mật khẩu)
+    const userInDb = await this.usersService.findByIdWithPassword(id);
+  
+    if (!userInDb) {
+      throw new UnauthorizedException('Người dùng không tồn tại');
+    }
+  
+    const isMatch = await this.usersService.Isvalidpassword(oldPassword, userInDb.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Mật khẩu cũ không chính xác');
+    }
+  
+    const updatedUser = await this.usersService.updatePassword(id, newPassword);
+  
+    return {
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email
+      }
+    };
+  }
+  
 }

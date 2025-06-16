@@ -121,4 +121,27 @@ updateUserToken = async(refreshToken:string,_id:string)=>{
 findUserByToken = async (refreshToken:string)=>{
   return await this.userModel.findOne({refreshToken})
 }
+async findByIdWithPassword(id: string) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new NotFoundException('ID không hợp lệ');
+  }
+
+  return this.userModel.findById(id); // giữ lại cả password
+}
+
+async updatePassword(id:string, newPassword: string) {
+  const hashedPassword = await this.gethashpassword(newPassword);
+
+  const updatedUser = await this.userModel.findByIdAndUpdate(
+    {_id:id},
+    { password: hashedPassword },
+    { new: true, runValidators: true } // đảm bảo validate nếu cần
+  ).exec(); // thêm exec() để rõ ràng và dễ debug
+
+  if (!updatedUser) {
+    throw new NotFoundException('Không tìm thấy người dùng để cập nhật mật khẩu');
+  }
+
+  return updatedUser;
+}
 }

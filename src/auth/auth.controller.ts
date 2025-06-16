@@ -1,5 +1,5 @@
 
-import { Controller,Post,UseGuards, Get, Body, Req, Res } from '@nestjs/common';
+import { Controller,Post,UseGuards, Get, Body, Req, Res, Patch, Param, BadRequestException } from '@nestjs/common';
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -54,4 +54,21 @@ export class AuthController {
   async handlelogout(@Res({ passthrough: true }) response: Response, @User() user: IUser) {
     return this.authService.logout(response, user);
   }
+  @Patch('change-password/:id')
+@UseGuards(JwtAuthGuard)
+@ResponseMessage('Thay đổi mật khẩu thành công')
+async changePassword(
+  @Param('id') id: string,
+  @Body('oldPassword') oldPassword: string,
+  @Body('newPassword') newPassword: string
+) {
+  if (!oldPassword || !newPassword || newPassword.length < 6) {
+    throw new BadRequestException('Vui lòng nhập mật khẩu hợp lệ (ít nhất 6 ký tự)');
+  }
+
+  return this.authService.changePassword(id, oldPassword, newPassword);
+}
+
+
+
 }
