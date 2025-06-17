@@ -12,11 +12,13 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(username: string, password: string): Promise<any> {
-    const user = await this.authService.validateuser(username,password)
-    console.log(user);
+    const user = await this.authService.validateuser(username,password);
+    console.log('User found in validate:', user); // << Rất quan trọng!
     if (!user) {
-      throw new UnauthorizedException();
+      console.log('Authentication failed for user:', username); // << Thêm log này
+      throw new UnauthorizedException("username or password not valid");
     }
     return user;
   }
 }
+  

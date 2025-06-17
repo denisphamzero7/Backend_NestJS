@@ -1,15 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
+import { User, UserDocument } from './schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { error } from 'console';
+import { IUser } from './user.interface';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) 
-  private userModel: Model<User>) {}
+  private userModel: SoftDeleteModel<UserDocument>) {}
 
 
   async gethashpassword(password: string) {
@@ -26,7 +29,22 @@ export class UsersService {
     });
     return user;
   }
-
+   async register(user: RegisterUserDto){
+    const {name,email,password,age,gender,address}=user;
+    const IsExist = await this.userModel.findOne({email})
+    if (IsExist) {
+      throw new ConflictException(`Email : ${email} already exists`);
+    }
+    const hashpassword= await this.gethashpassword(password);
+    let newRegister =  await this.userModel.create({
+      name,email,
+      password:hashpassword,
+      age,gender,address,role:"USER"
+    })
+    return {
+      data:newRegister 
+    } 
+   }
   async findAll() {
     const users = await this.userModel.find().select('-password');
     return users;
@@ -59,7 +77,8 @@ export class UsersService {
       const user = await this.userModel.findByIdAndUpdate({_id:id},updateUserDto, {
         new: true,
         runValidators: true,
-      });
+      }).select('-password');;
+      console.log('user :',user);
       if (!user) {
         return {message:'user not found'}
       }
@@ -70,19 +89,31 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, user:IUser) {
     try {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return { message: 'id not valid' };
       }
-      const user = await this.userModel.findByIdAndDelete({ _id: id });
-      if (!user) {
-        return 'User not found';
+    await this.userModel.updateOne({_id:id},{
+      deletedBy:{
+        _id:user._id,
+        email:user._id
       }
-      return { message: 'User deleted successfully' };
+    })
+    return this.userModel.softDelete({
+      _id: id
+    })
     } catch (error) {
       console.error(error);
       throw new Error('Internal server error');
     }
   }
+  
+updateUserToken = async(refreshToken:string,_id:string)=>{
+  return await this.userModel.updateOne({_id},
+    {refreshToken})
+}
+findUserByToken = async (refreshToken:string)=>{
+  return await this.userModel.findOne({refreshToken})
+}
 }

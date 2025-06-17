@@ -1,45 +1,36 @@
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<User>;
+export type ResumeDocument = HydratedDocument<Resume>;
 
-@Schema({timestamps:true})
-export class User {
-  @Prop({required:true})
+@Schema({ timestamps: true })
+export class Resume {
+  @Prop()
   email: string;
- 
-  @Prop()
-  name: string;
-
-  @Prop()
-  age: number;
-
-  @Prop({required:true})
-  password: string;
- 
-  @Prop()
-  refreshtoken:string
-
-  @Prop()
-  gender: string
-
-
-  @Prop()
-  role: string;
   
   @Prop()
-  phone: number;
+  status: string;
 
   @Prop()
-  address: string;
-  
-  @Prop({type:Object})
-  company:{
-    _id: mongoose.Schema.Types.ObjectId;
-    name:string;
-  }
+  url: string;
 
+  @Prop()
+  job: mongoose.Schema.Types.ObjectId;
+  
+  @Prop()
+  company: mongoose.Schema.Types.ObjectId;
+
+  @Prop()
+  history:{
+    status:string;
+    updatedAt:Date;
+    updatedBy:{
+        _id:mongoose.Schema.Types.ObjectId;
+        email:string
+    }
+  }[]
+
+  // Fix: Define the type for createBy
   @Prop({ type: Object }) // Or define a sub-schema if createBy becomes more complex
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;
@@ -66,12 +57,10 @@ export class User {
   @Prop()
   isDeleted: boolean;
   @Prop()
-createdAt: Date;
+  createdAt: Date;
 
-@Prop()
-updatedAt: Date;
-
-
+  @Prop()
+  updatedAt: Date;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const ResumeSchema = SchemaFactory.createForClass(Resume);

@@ -1,45 +1,23 @@
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<User>;
+export type CompanyDocument = HydratedDocument<Company>;
 
-@Schema({timestamps:true})
-export class User {
-  @Prop({required:true})
-  email: string;
- 
-  @Prop()
+@Schema({ timestamps: true })
+export class Company {
+  @Prop({ required: true })
   name: string;
 
-  @Prop()
-  age: number;
-
-  @Prop({required:true})
-  password: string;
- 
-  @Prop()
-  refreshtoken:string
-
-  @Prop()
-  gender: string
-
-
-  @Prop()
-  role: string;
-  
-  @Prop()
-  phone: number;
-
-  @Prop()
+  @Prop({ required: true })
   address: string;
   
-  @Prop({type:Object})
-  company:{
-    _id: mongoose.Schema.Types.ObjectId;
-    name:string;
-  }
+  @Prop()
+  logo: string;
+  
+  @Prop()
+  description: string;
 
+  // Fix: Define the type for createBy
   @Prop({ type: Object }) // Or define a sub-schema if createBy becomes more complex
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;
@@ -65,13 +43,6 @@ export class User {
 
   @Prop()
   isDeleted: boolean;
-  @Prop()
-createdAt: Date;
-
-@Prop()
-updatedAt: Date;
-
-
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const CompanySchema = SchemaFactory.createForClass(Company);
