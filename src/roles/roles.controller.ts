@@ -3,7 +3,9 @@ import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { IUser } from 'src/users/user.interface';
+
 import { Public, ResponseMessage, User } from 'src/decorator/customize';
+
 
 @Controller('roles')
 export class RolesController {
@@ -12,7 +14,7 @@ export class RolesController {
   @Post()
   create(@Body() createRoleDto: CreateRoleDto, @User() user:IUser) {
     return this.rolesService.create(createRoleDto,user);
-  }
+
  @Public()
   @ResponseMessage("Get all role") 
   @Get()
@@ -22,6 +24,7 @@ export class RolesController {
 ) {
     
     return this.rolesService.findAll(+currentPage,+limit,qs);
+
   }
 
   @Get(':id')

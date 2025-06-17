@@ -10,12 +10,15 @@ import mongoose from 'mongoose';
 import aqp from 'api-query-params';
 import { throwError } from 'rxjs';
 
+
 @Injectable()
 export class RolesService {
   constructor(@InjectModel(Role.name) 
   private roleModel: SoftDeleteModel<RoleDocument>) {}
 
+
    async create(createRoleDto: CreateRoleDto,user:IUser) {
+
       const {name,description,isActive,permissions}= createRoleDto;
      const IsExit  = await this.roleModel.findOne({name})
      if(IsExit){
@@ -66,13 +69,13 @@ export class RolesService {
     };
   }
 
- 
+
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return null;
+      return 'id not valid';
     }
-  
     return await this.roleModel.findOne({ _id: id }).populate('permissions');
+
   }
 
  async update(id: string, updateRoleDto: UpdateRoleDto,user:IUser) {

@@ -59,5 +59,8 @@ export class RegisterUserDto {
 
   @IsNotEmpty({ message: 'address not be empty' })
   address: string;
+   
+  @IsNotEmpty({ message: 'role not be empty' })
+  role:string
 
 }
