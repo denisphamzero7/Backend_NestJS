@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateResumeDto, CreateUserCvDto, } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { Resume, ResumeDocument } from './schemas/resume.schema';
@@ -89,36 +89,47 @@ export class ResumesService {
   }
 
   async update(id: string, updateResumeDto: UpdateResumeDto, user: IUser) {
-    const result = await this.resumeModel.updateOne(
-      { _id: id },
-      {
-        $set: {
-          status: updateResumeDto.status,
+    const { status } = updateResumeDto;
+    console.log('>>> Received DTO:', updateResumeDto);
+    console.log('>>> Raw status value:', updateResumeDto.status);
+  console.log('Received status:', status); // debug
+
+  if (!status || typeof status !== 'string') {
+    throw new BadRequestException('Status is required and must be a valid string');
+  }
+
+  const result = await this.resumeModel.updateOne(
+    { _id: id },
+    {
+      $set: {
+        status: status,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+      $push: {
+        history: {
+          status: status,
+          updatedAt: new Date(),
           updatedBy: {
             _id: user._id,
             email: user.email,
           },
         },
-        $push: {
-          history: {
-            status: updateResumeDto.status,
-            updatedAt: new Date(),
-            updatedBy: {
-              _id: user._id,
-              email: user.email,
-            },
-          },
-        },
-      }
-    );
-  
-    if (result.modifiedCount === 0) {
-      throw new Error('Resume not found or nothing updated');
-    }
-  
-    return {
-      message: 'Resume updated successfully',
-    };
+      },
+    },
+    { upsert: false }
+  );
+  console.log('RESULT',result)
+
+  if (result.modifiedCount === 0) {
+    throw new NotFoundException('Resume not found or nothing updated');
+  }
+
+  return {
+    message: 'Resume updated successfully',
+  };
   }
   async remove(id: string,user:IUser) {
     await this.resumeModel.updateOne({_id:id},{

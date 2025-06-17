@@ -18,7 +18,6 @@ export class Job {
   company: Company;
 
 
-
   @Prop()
   description: string;
 

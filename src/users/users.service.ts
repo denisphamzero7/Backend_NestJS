@@ -24,14 +24,19 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const hashpassword = await this.gethashpassword(createUserDto.password);
+    const existingEmail = await this.userModel.findOne({ email: createUserDto.email });
+    if (existingEmail) {
+      throw new BadRequestException(`Email already exists`);
+    }
     const user = await this.userModel.create({
       email: createUserDto.email,
       password: hashpassword,
     });
+    console.log(user);
     return user;
   }
    async register(user: RegisterUserDto){
-    const {name,email,password,age,gender,address}=user;
+    const {name,email,password,age,gender,address,role}=user;
     const IsExist = await this.userModel.findOne({email})
     if (IsExist) {
       throw new ConflictException(`Email : ${email} already exists`);
@@ -40,7 +45,7 @@ export class UsersService {
     let newRegister =  await this.userModel.create({
       name,email,
       password:hashpassword,
-      age,gender,address,role:"USER"
+      age,gender,address,role
     })
     return {
       data:newRegister 
@@ -123,5 +128,28 @@ updateUserToken = async(refreshToken:string,_id:string)=>{
 }
 findUserByToken = async (refreshToken:string)=>{
   return await this.userModel.findOne({refreshToken}).populate({ path: 'role', select: { name: 1, permissions: 1 } });
+}
+async findByIdWithPassword(id: string) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new NotFoundException('ID không hợp lệ');
+  }
+
+  return this.userModel.findById(id); // giữ lại cả password
+}
+
+async updatePassword(id:string, newPassword: string) {
+  const hashedPassword = await this.gethashpassword(newPassword);
+
+  const updatedUser = await this.userModel.findByIdAndUpdate(
+    {_id:id},
+    { password: hashedPassword },
+    { new: true, runValidators: true } // đảm bảo validate nếu cần
+  ).exec(); // thêm exec() để rõ ràng và dễ debug
+
+  if (!updatedUser) {
+    throw new NotFoundException('Không tìm thấy người dùng để cập nhật mật khẩu');
+  }
+
+  return updatedUser;
 }
 }

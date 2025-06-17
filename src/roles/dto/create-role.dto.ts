@@ -17,5 +17,4 @@ export class CreateRoleDto {
     @IsMongoId({each:true,message:"each permissions is mongo object id"})
     @IsArray({message:'permissions is array'})
     permissions:mongoose.Schema.Types.ObjectId[];
-
 }

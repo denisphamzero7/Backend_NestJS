@@ -12,7 +12,13 @@ import {
   import { Transform, Type } from 'class-transformer';
   import mongoose from 'mongoose';
   
-
+  class Company {
+    @IsNotEmpty({ message: '_id must not be empty' })
+    _id: mongoose.Schema.Types.ObjectId;
+  
+    @IsNotEmpty({ message: 'Company name must not be empty' })
+    name: string;
+  }
   
   export class CreateJobDto {
     @IsNotEmpty({ message: 'Job name must not be empty' })
@@ -23,8 +29,11 @@ import {
     @IsString({ each: true, message: 'Each skill must be a string' })
     skills: string[];
   
-   @IsNotEmpty({message:'not empty'})
-    company: string
+    @IsNotEmptyObject()
+    @IsObject({ message: 'Company must be an object' })
+    @ValidateNested()
+    @Type(() => Company)
+    company: Company;
   
     @IsOptional()
     @IsString({ message: 'Location must be a string' })

@@ -22,6 +22,7 @@ export class User {
   @Prop()
   gender: string
 
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Role.name })
   role: mongoose.Schema.Types.ObjectId;
   
@@ -68,8 +69,7 @@ createdAt: Date;
 @Prop()
 updatedAt: Date;
 
-@Prop()
-refreshToken:string
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
