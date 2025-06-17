@@ -6,8 +6,9 @@ import { User, UserDocument } from './schemas/user.schema';
 import mongoose, { Model } from 'mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { error } from 'console';
+
 import { IUser } from './user.interface';
+
 
 @Injectable()
 export class UsersService {
@@ -60,7 +61,7 @@ export class UsersService {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return 'User not found';
       }
-      const user = await this.userModel.findOne({ _id: id }).select('-password');
+      const user = await this.userModel.findOne({ _id: id }).populate({ path: 'role', select: 'name permissions' }) .select('-password');
       return user;
     } catch (error) {
       console.error(error);
@@ -68,7 +69,9 @@ export class UsersService {
     }
   }
   async findOneByUserName(username: string) {
-    return this.userModel.findOne({email:username})
+    return await this.userModel
+    .findOne({ email: username })
+    .populate({ path: 'role', select: { name: 1, permissions: 1 } });
   }
  async Isvalidpassword(password: string, hash:string){
      return compareSync(password, hash); // true
@@ -99,6 +102,11 @@ export class UsersService {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return { message: 'id not valid' };
       }
+      const founduser = await this.userModel.findById(id)
+             if(founduser.email==="admin@gmail.com")
+              {
+                throw new BadRequestException("not delete Admin !!!!!")
+              }
     await this.userModel.updateOne({_id:id},{
       deletedBy:{
         _id:user._id,
@@ -116,10 +124,10 @@ export class UsersService {
   
 updateUserToken = async(refreshToken:string,_id:string)=>{
   return await this.userModel.updateOne({_id},
-    {refreshToken})
+    {refreshToken}).populate({ path: 'role', select: { name: 1, permissions: 1 } });
 }
 findUserByToken = async (refreshToken:string)=>{
-  return await this.userModel.findOne({refreshToken})
+  return await this.userModel.findOne({refreshToken}).populate({ path: 'role', select: { name: 1, permissions: 1 } });
 }
 async findByIdWithPassword(id: string) {
   if (!mongoose.Types.ObjectId.isValid(id)) {

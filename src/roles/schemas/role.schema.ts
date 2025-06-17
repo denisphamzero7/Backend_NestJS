@@ -1,19 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
+import { Permission } from 'src/permissions/schemas/permission.Schema';
 
-export type PermissionDocument = HydratedDocument<Permission>;
+export type RoleDocument = HydratedDocument<Role>;
 
 @Schema({ timestamps: true })
-export class Permission {
+export class Role {
   @Prop()
   name: string;
   
-  @Prop()
-  apiPath: string;
+  @Prop({type:[mongoose.Schema.Types.ObjectId],ref: Permission.name})
+  permissions: Permission[];
 
   @Prop()
-  module: string;
+  description: string;
 
+
+  @Prop()
+  isActive:boolean;
   
   @Prop({ type: Object }) 
   createBy: {
@@ -41,4 +45,4 @@ export class Permission {
 
 }
 
-export const PermissionSchema = SchemaFactory.createForClass(Permission);
+export const RoleSchema = SchemaFactory.createForClass(Role);
