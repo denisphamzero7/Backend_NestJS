@@ -3,7 +3,7 @@ import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { IUser } from 'src/users/user.interface';
-import { ResponseMessage, User } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 
 @Controller('roles')
 export class RolesController {
@@ -13,7 +13,7 @@ export class RolesController {
   create(@Body() createRoleDto: CreateRoleDto, @User() user:IUser) {
     return this.rolesService.create(createRoleDto,user);
   }
-
+ @Public()
   @ResponseMessage("Get all role") 
   @Get()
   findAll(@Query("page") currentPage:string,

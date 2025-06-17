@@ -89,7 +89,7 @@ export class RolesService {
         _id:user._id,
         email:user.email
       }
-    })
+    },{upsert:true})
     return updateRole
   }
 
