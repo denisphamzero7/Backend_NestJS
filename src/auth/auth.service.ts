@@ -7,25 +7,44 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 
 import ms from 'ms';
+import { RolesService } from 'src/roles/roles.service';
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private rolesService:RolesService
   ) {}
 
-  async validateuser(username: string, pass: string): Promise<any> {
+  async validateUser(username: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByUserName(username);
-    console.log('user :',user);
+  
     if (user) {
-      const isValid = await this.usersService.Isvalidpassword(pass,user.password);
-      if (isValid) {
-        return user;
+      const isValid = await this.usersService.Isvalidpassword(pass, user.password);
+      if (isValid === true) {
+        let permissions = [];
+  
+        if (user.role) {
+          const userRole = user.role as unknown as { _id: string; name: string };
+          console.log("user role <<<<<<: ",userRole);
+          const temp = (await this.rolesService.findOne(userRole._id));
+          permissions = temp?.permissions ?? [];
+        }
+  
+        const objUser = {
+          ...user.toObject(),
+          permissions,
+        };
+  
+        return objUser;
       }
     }
+  
     return null;
   }
+  
+  
 
   async login(user: IUser,response:Response) {
     const { _id, name, email, role } = user;
@@ -113,7 +132,36 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Refresh token error:', error.message);
-      throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+      throw new UnauthorizedException('Refresh token error');
     }
   }
+  async logout (response:Response,user:IUser){
+    await this.usersService.updateUserToken("",user._id.toString())
+    response.clearCookie('refresh_token');
+    return true
+  }
+  async changePassword(id: string, oldPassword: string, newPassword: string) {
+    // Tìm user đầy đủ (bao gồm mật khẩu)
+    const userInDb = await this.usersService.findByIdWithPassword(id);
+  
+    if (!userInDb) {
+      throw new UnauthorizedException('Người dùng không tồn tại');
+    }
+  
+    const isMatch = await this.usersService.Isvalidpassword(oldPassword, userInDb.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Mật khẩu cũ không chính xác');
+    }
+  
+    const updatedUser = await this.usersService.updatePassword(id, newPassword);
+  
+    return {
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email
+      }
+    };
+  }
+  
 }

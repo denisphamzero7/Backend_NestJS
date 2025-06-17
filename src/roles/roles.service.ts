@@ -7,13 +7,18 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
 import { User } from 'src/decorator/customize';
 import mongoose from 'mongoose';
+import aqp from 'api-query-params';
+import { throwError } from 'rxjs';
+
 
 @Injectable()
 export class RolesService {
   constructor(@InjectModel(Role.name) 
   private roleModel: SoftDeleteModel<RoleDocument>) {}
 
-   async create(createRoleDto: CreateRoleDto, @User() user:IUser) {
+
+   async create(createRoleDto: CreateRoleDto,user:IUser) {
+
       const {name,description,isActive,permissions}= createRoleDto;
      const IsExit  = await this.roleModel.findOne({name})
      if(IsExit){
@@ -30,22 +35,77 @@ export class RolesService {
 
   }
 
-  findAll() {
-    return `This action returns all roles`;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+  
+
+    delete filter.page;
+    delete filter.limit;
+  
+
+    const page = currentPage || 1;
+    const defaultLimit = limit || 10;
+    const offset = (page - 1) * defaultLimit;
+  
+    const totalItems = await this.roleModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+  
+    const result = await this.roleModel
+      .find(filter, projection)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+  
+    return {
+      result,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit: defaultLimit
+      }
+    };
   }
+
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return 'id not valid';
     }
-    return await this.roleModel.findOne({_id:id});
+    return await this.roleModel.findOne({ _id: id }).populate('permissions');
+
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+ async update(id: string, updateRoleDto: UpdateRoleDto,user:IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return 'not found role';
+    }
+    const{name, description, isActive, permissions} = updateRoleDto;
+    // const IsExist = await this.roleModel.findOne({name})
+    // if(IsExist){
+    //   throw new BadRequestException(`role with name=${name} is exist`)
+    // }
+    const updateRole = await this.roleModel.updateOne({_id:id},{
+      name, description, isActive, permissions,updatedBy:{
+        _id:user._id,
+        email:user.email
+      }
+    },{upsert:true})
+    return updateRole
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  async remove(id: string,user:IUser) {
+    await this.roleModel.updateOne({_id:id},{
+      deletedBy:{
+        _id:user._id,
+        email:user.email
+      }
+    })
+    return this.roleModel.softDelete({
+      _id:id
+    })
+    
   }
 }

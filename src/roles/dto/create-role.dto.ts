@@ -1,19 +1,20 @@
-import { IsArray, IsMongoId, IsNotEmpty } from "class-validator";
+import { IsArray, IsBoolean, IsMongoId, IsNotEmpty } from "class-validator";
 import mongoose from "mongoose";
 
 export class CreateRoleDto {
-    @IsNotEmpty({ message: 'Name is required' })
-    name : string;
+    @IsNotEmpty({message:"Name is not empty"})
+    name: string;
+    
+    @IsBoolean({message:"isActive not empty"})
+    @IsNotEmpty({message:"Name is not empty"})
+    isActive:boolean; 
 
-    @IsNotEmpty({ message: 'Description is required' })
-    description:string
 
-
-    @IsNotEmpty({ message: 'IsActive is required' })
-    isActive:boolean
-
-    @IsNotEmpty({ message: 'permissions is required' })
-    @IsMongoId({ message: 'permissions must be a valid MongoDB ObjectId' })
-    @IsArray({message: 'permissions must be a valid MongoDB ObjectId'})
-    permissions: mongoose.Schema.Types.ObjectId[];
+    @IsNotEmpty({message:"description is not empty"})
+    description: string;
+    
+    @IsNotEmpty({message:"permission not empty"})
+    @IsMongoId({each:true,message:"each permissions is mongo object id"})
+    @IsArray({message:'permissions is array'})
+    permissions:mongoose.Schema.Types.ObjectId[];
 }

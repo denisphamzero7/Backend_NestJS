@@ -20,9 +20,6 @@ export class User {
   password: string;
  
   @Prop()
-  refreshtoken:string
-
-  @Prop()
   gender: string
 
 
@@ -72,8 +69,7 @@ createdAt: Date;
 @Prop()
 updatedAt: Date;
 
-@Prop()
-refreshToken:string
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
