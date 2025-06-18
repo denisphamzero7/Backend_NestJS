@@ -7,6 +7,8 @@ export type ResumeDocument = HydratedDocument<Resume>;
 export class Resume {
   @Prop()
   email: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' }) 
+  userId: mongoose.Schema.Types.ObjectId;
   
   @Prop()
   status: string;

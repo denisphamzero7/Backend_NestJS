@@ -142,4 +142,14 @@ export class ResumesService {
       _id:id
     })
   }
+  async findByUsers(user:IUser){
+    console.log('User info:', user);
+    const data = await this.resumeModel.find({
+      userId: user._id,
+    })
+    console.log('user data: ',data);
+ 
+    return data
+  }
 }
+
