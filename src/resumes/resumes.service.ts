@@ -84,8 +84,9 @@ export class ResumesService {
     if (!Types.ObjectId.isValid(id)) {
       throw new BadRequestException('Invalid ID format');
     }
+    console.log('a resume:', await this.resumeModel.findOne({_id:id}));
     return await this.resumeModel.findOne({_id:id});
-
+     
   }
 
   async update(id: string, updateResumeDto: UpdateResumeDto, user: IUser) {
@@ -141,5 +142,12 @@ export class ResumesService {
     return this.resumeModel.softDelete({
       _id:id
     })
+  }
+  async findByUsers(user:IUser){
+    const data = await this.resumeModel.find({
+      userId: user._id,
+    })
+    console.log('user data: ',data);
+    return data
   }
 }

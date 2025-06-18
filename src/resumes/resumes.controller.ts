@@ -3,7 +3,7 @@ import { ResumesService } from './resumes.service';
 import { CreateResumeDto, CreateUserCvDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { IUser } from 'src/users/user.interface';
-import { Public, User } from 'src/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/decorator/customize';
 
 @Controller('resumes')
 export class ResumesController {
@@ -35,5 +35,11 @@ export class ResumesController {
   @Delete(':id')
   remove(@Param('id') id: string,@User() user:IUser) {
     return this.resumesService.remove(id,user);
+  }
+  // khỏi trùng với get by id
+  @Post('by-user')
+  @ResponseMessage("Get resume by user")
+  getResumeByUser(@User() user:IUser){
+    return this.resumesService.findByUsers(user)
   }
 }
