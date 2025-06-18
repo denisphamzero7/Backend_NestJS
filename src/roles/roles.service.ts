@@ -72,7 +72,7 @@ export class RolesService {
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return 'id not valid';
+      return null;
     }
     return await this.roleModel.findOne({ _id: id }).populate('permissions');
 
