@@ -19,7 +19,7 @@ export class PermissionsController {
   }
 
   @Get()
- 
+ @Public()
   @ResponseMessage("Get all permission")
   findAll(@Query("page") currentPage:string,
   @Query("limit") limit:string,

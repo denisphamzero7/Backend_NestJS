@@ -78,7 +78,7 @@ export class PermissionsService {
         _id:user._id,
         email:user.email
       }
-    })
+    },{upsert:true})
     return ({
       message: 'update company successfull',
       company:update

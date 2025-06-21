@@ -7,6 +7,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -38,6 +39,7 @@ async function bootstrap() {
     defaultVersion: ['1', '2']
   }); 
   await app.listen(port);
+  app.use(helmet());
   console.log(`Server is running at http://localhost:${port}`);
 }
 bootstrap();

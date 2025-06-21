@@ -1,10 +1,11 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsDefined, IsEmail, IsNotEmpty, IsNotEmptyObject, IsObject, IsString, MaxLength, MinLength, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import mongoose from 'mongoose';
 
 
 
 
-class company{
+class Company{
   @IsNotEmpty()
   _id:mongoose.Schema.Types.ObjectId;
   @IsNotEmpty()
@@ -33,8 +34,14 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'gender not be empty' })
   gender: string;
 
-  @IsNotEmpty({ message: 'address not be empty' })
-  role: string
+  @IsNotEmpty({ message: 'role not be empty' })
+  role: string;
+  
+  @IsNotEmptyObject()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => Company)
+  company: Company;
 }
 
 export class RegisterUserDto {

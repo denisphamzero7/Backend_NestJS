@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
 import { Subscriber, retry } from 'rxjs';
@@ -15,15 +15,20 @@ export class SubscribersService {
     @InjectModel(Subscriber.name)
     private subscriberModel: SoftDeleteModel<SubscriberDocument>,
   ) {}
-  create(createSubscriberDto: CreateSubscriberDto, user: IUser) {
-    const newsubscriber = this.subscriberModel.create({
-      ...createSubscriberDto,
+  async create(createSubscriberDto: CreateSubscriberDto, user: IUser) {
+    const {name,email,skills}= createSubscriberDto
+    const isExist= await this.subscriberModel.findOne({email})
+    if(isExist){
+      throw new BadRequestException(` this is ${email} existing `)
+    }
+    const newsub = this.subscriberModel.create({
+      name,email,skills,
       createdBy: {
         _id: user?._id,
         email: user?.email,
       },
     });
-    return newsubscriber;
+    return newsub;
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
@@ -84,7 +89,11 @@ export class SubscribersService {
   }
   async getskills(user: IUser) {
     const { email } = user;
-    return await this.subscriberModel.findOne({ email }, { skills: 1 });
+    const skills = await this.subscriberModel.findOne({ email }, { skills: 1 }).exec();
+    if(!skills){
+      throw new BadRequestException(`Subscriber with email ${email} not found` )
+    }
+    return skills
   }
   async remove(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {

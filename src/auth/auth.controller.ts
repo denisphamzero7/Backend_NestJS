@@ -8,6 +8,7 @@ import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { PassThrough } from 'stream';
 import { Request, Response,  } from 'express'; 
 import { IUser } from 'src/users/user.interface';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 
 
@@ -20,9 +21,12 @@ export class AuthController {
     private authService: AuthService,
  
   ) {}
+  //giới hạn click request
   @Public()
   @UseGuards(LocalAuthGuard)
+  @UseGuards(ThrottlerGuard)
   @ResponseMessage("login a new user")
+  @Throttle(5,60)
   @Post('/login')
   handelogin(
     @Req() req,

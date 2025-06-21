@@ -28,12 +28,20 @@ export class UsersService {
     if (existingEmail) {
       throw new BadRequestException(`Email already exists`);
     }
-    const user = await this.userModel.create({
-      email: createUserDto.email,
+    const { name, email, age, gender, address, role, phone, company } = createUserDto;
+    const newUser = await this.userModel.create({
+      name,
+      email,
       password: hashpassword,
+      age,
+      gender,
+      address,
+      role,
+      phone,
+      company,
     });
-    console.log(user);
-    return user;
+    console.log(newUser);
+    return newUser;
   }
    async register(user: RegisterUserDto){
     const {name,email,password,age,gender,address,role}=user;
