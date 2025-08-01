@@ -36,7 +36,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err || new UnauthorizedException("token not valid!!!");
     }
-
+    if (user.role?.name === 'admin') {
+      return user;
+    }
     // check permisions
 
     const targetMethod = request.method;

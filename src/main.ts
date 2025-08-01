@@ -27,6 +27,7 @@ async function bootstrap() {
     transform: true,
   }),);
   app.use(cookieParser());
+  app.use(helmet());
   app.enableCors({
     "origin":"*",
     "methods":"GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -39,7 +40,7 @@ async function bootstrap() {
     defaultVersion: ['1', '2']
   }); 
   await app.listen(port);
-  app.use(helmet());
+  
   console.log(`Server is running at http://localhost:${port}`);
 }
 bootstrap();

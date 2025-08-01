@@ -1,6 +1,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import { Company } from 'src/companies/schemas/company.schema';
 import { Role } from 'src/roles/schemas/role.schema';
 
 export type UserDocument = HydratedDocument<User>;
@@ -16,7 +17,8 @@ export class User {
   @Prop()
   age: number;
 
-  @Prop({required:true})
+  // @Prop({required:true})
+  @Prop()
   password: string;
  
   @Prop()
@@ -37,6 +39,8 @@ export class User {
     _id: mongoose.Schema.Types.ObjectId;
     name:string;
   }
+  // @Prop({type: mongoose.Schema.Types.ObjectId, ref: Company.name})
+  // company: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: Object }) // Or define a sub-schema if createBy becomes more complex
   createBy: {

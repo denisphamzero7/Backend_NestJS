@@ -8,13 +8,22 @@ import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 
 import { IUser } from './user.interface';
+import aqp from 'api-query-params';
+import { Role } from 'src/roles/schemas/role.schema';
+import { error } from 'console';
+
 
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) 
-  private userModel: SoftDeleteModel<UserDocument>) {}
+  constructor(
+  @InjectModel(User.name) 
+  private userModel: SoftDeleteModel<UserDocument>,
 
+  @InjectModel(Role.name)                          
+    private roleModel: Model<Role>
+) {}
+  
 
   async gethashpassword(password: string) {
     const salt =  genSaltSync(10);
@@ -44,24 +53,58 @@ export class UsersService {
     return newUser;
   }
    async register(user: RegisterUserDto){
-    const {name,email,password,age,gender,address,role}=user;
+    const {name,email,password,age,gender,address}=user;
     const IsExist = await this.userModel.findOne({email})
     if (IsExist) {
       throw new ConflictException(`Email : ${email} already exists`);
     }
     const hashpassword= await this.gethashpassword(password);
+    const userRole = await this.roleModel.findOne({name:'user'})
+    if (!userRole) {
+      throw new NotFoundException('role "user" not created');
+    }
     let newRegister =  await this.userModel.create({
       name,email,
       password:hashpassword,
-      age,gender,address,role
+      age,gender,address,
+      role:userRole._id
     })
     return {
-      data:newRegister 
+    newRegister 
     } 
    }
-  async findAll() {
-    const users = await this.userModel.find().select('-password');
-    return users;
+  async findAll(currentPage: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+  
+
+    delete filter.page;
+    delete filter.limit;
+  
+
+    const page = currentPage || 1;
+    const defaultLimit = limit || 10;
+    const offset = (page - 1) * defaultLimit;
+  
+    const totalItems = await this.userModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+  
+    const result = await this.userModel
+      .find(filter, projection)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+  
+    return {
+      result,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit: defaultLimit
+      }
+    };
   }
 
   async findOne(id: string) {
@@ -93,7 +136,8 @@ export class UsersService {
       const user = await this.userModel.findByIdAndUpdate({_id:id},updateUserDto, {
         new: true,
         runValidators: true,
-      }).select('-password');;
+      })
+      // .select('-password');
       console.log('user :',user);
       if (!user) {
         return {message:'user not found'}
@@ -104,31 +148,55 @@ export class UsersService {
       throw new Error('Internal server error');
     }
   }
-
-  async remove(id: string, user:IUser) {
+  async remove(id: string) {
     try {
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        return { message: 'id not valid' };
+        return { message: 'ID không hợp lệ' };
       }
-      const founduser = await this.userModel.findById(id)
-             if(founduser.email==="admin@gmail.com")
-              {
-                throw new BadRequestException("not delete Admin !!!!!")
-              }
-    await this.userModel.updateOne({_id:id},{
-      deletedBy:{
-        _id:user._id,
-        email:user._id
+  
+      const foundUser = await this.userModel.findById(id);
+  
+      if (!foundUser) {
+        throw new NotFoundException('Không tìm thấy người dùng');
       }
-    })
-    return this.userModel.softDelete({
-      _id: id
-    })
+  
+      if (foundUser.email === 'admin@gmail.com') {
+        throw new BadRequestException('Không thể xoá tài khoản Admin!');
+      }
+  
+      // Xoá mềm người dùng
+      return await this.userModel.softDelete({ _id: id });
+  
     } catch (error) {
       console.error(error);
-      throw new Error('Internal server error');
+      throw new Error('Lỗi hệ thống khi xoá người dùng');
     }
   }
+  
+  // async remove(id: string, user:IUser) {
+  //   try {
+  //     if (!mongoose.Types.ObjectId.isValid(id)) {
+  //       return { message: 'id not valid' };
+  //     }
+  //     const founduser = await this.userModel.findById(id)
+  //            if(founduser.email==="admin@gmail.com")
+  //             {
+  //               throw new BadRequestException("not delete Admin !!!!!")
+  //             }
+  //   await this.userModel.updateOne({_id:id},{
+  //     deletedBy:{
+  //       _id:user._id,
+  //       email:user._id
+  //     }
+  //   })
+  //   return this.userModel.softDelete({
+  //     _id: id
+  //   })
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw new Error('Internal server error');
+  //   }
+  // }
   
 updateUserToken = async(refreshToken:string,_id:string)=>{
   return await this.userModel.updateOne({_id},

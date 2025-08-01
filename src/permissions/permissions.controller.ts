@@ -28,7 +28,7 @@ export class PermissionsController {
     
     return this.permissionsService.findAll(+currentPage,+limit,qs);
   }
-
+  @SkipCheckPermission()
   @Get(':id')
   @ResponseMessage("Get a permission")
   findOne(@Param('id') id: string) {
@@ -39,7 +39,7 @@ export class PermissionsController {
   update(@Param('id') id: string, @Body() updatePermissionDto: UpdatePermissionDto, @User() user: IUser) {
     return this.permissionsService.update(id, updatePermissionDto,user);
   }
-
+@SkipCheckPermission()
   @Delete(':id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.permissionsService.remove(id,user);

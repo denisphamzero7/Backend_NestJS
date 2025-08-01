@@ -55,7 +55,7 @@ export class RolesService {
       .skip(offset)
       .limit(defaultLimit)
       .sort(sort as any)
-      .populate(population)
+      .populate(population).populate('permissions','name')
       .exec();
   
     return {
