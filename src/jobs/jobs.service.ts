@@ -10,31 +10,53 @@ import { IUser } from 'src/users/user.interface';
 
 @Injectable()
 export class JobsService {
-  constructor(@InjectModel(Job.name) 
-  private jobModel: SoftDeleteModel<JobDocument>) {}
+  constructor(
+    @InjectModel(Job.name)
+    private jobModel: SoftDeleteModel<JobDocument>,
+  ) {}
   async create(createJobDto: CreateJobDto) {
-    const {name,skills,company,location,salary,quantity,level,description,startDate,endDate,isActive}=createJobDto
+    const {
+      name,
+      skills,
+      company,
+      location,
+      salary,
+      quantity,
+      level,
+      description,
+      startDate,
+      endDate,
+      isActive,
+    } = createJobDto;
     const newJob = await this.jobModel.create({
-      name,skills,company,location,salary,quantity,level,description,startDate,endDate,isActive
-    })
-    return newJob
+      name,
+      skills,
+      company,
+      location,
+      salary,
+      quantity,
+      level,
+      description,
+      startDate,
+      endDate,
+      isActive,
+    });
+    return newJob;
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
-  
 
     delete filter.page;
     delete filter.limit;
-  
 
     const page = currentPage || 1;
     const defaultLimit = limit || 10;
     const offset = (page - 1) * defaultLimit;
-  
+
     const totalItems = await this.jobModel.countDocuments(filter);
     const totalPages = Math.ceil(totalItems / defaultLimit);
-  
+
     const result = await this.jobModel
       .find(filter, projection)
       .skip(offset)
@@ -42,15 +64,15 @@ export class JobsService {
       .sort(sort as any)
       .populate(population)
       .exec();
-  
+
     return {
       result,
       pagination: {
         totalItems,
         totalPages,
         currentPage: page,
-        limit: defaultLimit
-      }
+        limit: defaultLimit,
+      },
     };
   }
 
@@ -59,30 +81,36 @@ export class JobsService {
       throw new BadRequestException('Invalid ID format');
     }
 
-    return await this.jobModel.findOne({_id:id}).populate('company','name');
-
+    return await this.jobModel.findOne({ _id: id }).populate('company', 'name');
   }
 
-  async update(id: string, updateJobDto: UpdateJobDto,user:IUser) {
-    const update =await this.jobModel.updateOne({_id:id},{
-      ...updateJobDto,
-      updatedBy:{
-        _id:user._id,
-        email:user.email
-      }
-    })
+  async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
+    const update = await this.jobModel.updateOne(
+      { _id: id },
+      {
+        ...updateJobDto,
+        updatedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
 
-    return update
+    return update;
   }
 
-  async remove(id: string,user:IUser) {
-      await this.jobModel.updateOne({_id:id},
-     {deletedBy:{
-      _id:user._id,
-      email:user.email
-    }})
+  async remove(id: string, user: IUser) {
+    await this.jobModel.updateOne(
+      { _id: id },
+      {
+        deletedBy: {
+          _id: user._id,
+          email: user.email,
+        },
+      },
+    );
     return this.jobModel.softDelete({
-      _id:id
-    })
+      _id: id,
+    });
   }
 }

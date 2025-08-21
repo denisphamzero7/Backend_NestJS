@@ -21,10 +21,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
   imports: [
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot({
-
-          ttl: 60,
-          limit: 5,
-
+      ttl: 60,
+      limit: 5,
     }),
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
@@ -34,8 +32,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
         connectionFactory: (connection) => {
           connection.plugin(softDeletePlugin);
           return connection;
-        }
-
+        },
       }),
       inject: [ConfigService],
     }),
@@ -49,10 +46,10 @@ import { ThrottlerModule } from '@nestjs/throttler';
     RolesModule,
     SubscribersModule,
     MailModule,
-
   ],
   controllers: [AppController],
-  providers: [AppService,
+  providers: [
+    AppService,
     // {
     //   provide: APP_GUARD,
     //   useClass: JwtAuthGuard,

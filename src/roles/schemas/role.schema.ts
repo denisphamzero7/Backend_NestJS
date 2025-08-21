@@ -8,30 +8,29 @@ export type RoleDocument = HydratedDocument<Role>;
 export class Role {
   @Prop()
   name: string;
-  
-  @Prop({type:[mongoose.Schema.Types.ObjectId],ref: Permission.name})
+
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: Permission.name })
   permissions: Permission[];
 
   @Prop()
   description: string;
 
-
   @Prop()
-  isActive:boolean;
-  
-  @Prop({ type: Object }) 
+  isActive: boolean;
+
+  @Prop({ type: Object })
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   updatedBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   deleteBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
@@ -42,7 +41,6 @@ export class Role {
 
   @Prop()
   isDeleted: boolean;
-
 }
 
 export const RoleSchema = SchemaFactory.createForClass(Role);

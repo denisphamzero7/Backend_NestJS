@@ -7,7 +7,7 @@ export type PermissionDocument = HydratedDocument<Permission>;
 export class Permission {
   @Prop()
   name: string;
-  
+
   @Prop()
   apiPath: string;
 
@@ -17,20 +17,19 @@ export class Permission {
   @Prop()
   module: string;
 
-  
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   updatedBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   deleteBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
@@ -41,7 +40,6 @@ export class Permission {
 
   @Prop()
   isDeleted: boolean;
-
 }
 
 export const PermissionSchema = SchemaFactory.createForClass(Permission);

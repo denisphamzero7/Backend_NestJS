@@ -1,4 +1,3 @@
-
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
@@ -11,12 +10,12 @@ import { RolesService } from 'src/roles/roles.service';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private configService: ConfigService,
-    private roleService: RolesService
+    private roleService: RolesService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>("JWT_ACCESS_TOKEN_SECRET")
+      secretOrKey: configService.get<string>('JWT_ACCESS_TOKEN_SECRET'),
     });
   }
 
@@ -26,20 +25,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     let permissions = [];
 
     if (role) {
-        const userRole = role as unknown as { _id: string; name: string };
-        const temp = await this.roleService.findOne(userRole._id);
-        if (temp) {
-            permissions = temp.toObject().permissions;
-        }
+      const userRole = role as unknown as { _id: string; name: string };
+      const temp = await this.roleService.findOne(userRole._id);
+      if (temp) {
+        permissions = temp.toObject().permissions;
+      }
     }
-    
 
-    return { 
-        _id, 
-        name, 
-        email, 
-        role, 
-        permissions 
+    return {
+      _id,
+      name,
+      email,
+      role,
+      permissions,
     };
   }
 }

@@ -4,58 +4,54 @@ import { Company } from 'src/companies/schemas/company.schema';
 
 export type JobDocument = HydratedDocument<Job>;
 
-
 @Schema({ timestamps: true })
 export class Job {
   @Prop({ required: true })
   name: string;
 
   @Prop()
-  skills: string [] 
-  
- 
+  skills: string[];
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Company' })
   company: Company;
-
 
   @Prop()
   description: string;
 
   @Prop()
-  location: string
- 
-  @Prop()
-  level: string
+  location: string;
 
   @Prop()
-  startDate: Date
+  level: string;
 
   @Prop()
-  endDate: Date
+  startDate: Date;
 
   @Prop()
-  quantity: number
+  endDate: Date;
 
   @Prop()
-  salary: number
+  quantity: number;
 
   @Prop()
-  isActive: boolean
+  salary: number;
 
-  @Prop({ type: Object }) 
+  @Prop()
+  isActive: boolean;
+
+  @Prop({ type: Object })
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   updatedBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
 
-
-  @Prop({ type: Object }) 
+  @Prop({ type: Object })
   deletedBy: {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;

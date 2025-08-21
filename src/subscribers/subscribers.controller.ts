@@ -1,8 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { SubscribersService } from './subscribers.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
-import { Public, ResponseMessage, SkipCheckPermission, User } from 'src/decorator/customize';
+import {
+  Public,
+  ResponseMessage,
+  SkipCheckPermission,
+  User,
+} from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
 import { skip } from 'rxjs';
 
@@ -10,29 +24,30 @@ import { skip } from 'rxjs';
 export class SubscribersController {
   constructor(private readonly subscribersService: SubscribersService) {}
 
-  
   @Post()
-  @ResponseMessage("Create a new Subscriber")
-  create(@Body() createSubscriberDto: CreateSubscriberDto,@User() user:IUser) {
-    return this.subscribersService.create(createSubscriberDto,user);
+  @ResponseMessage('Create a new Subscriber')
+  create(
+    @Body() createSubscriberDto: CreateSubscriberDto,
+    @User() user: IUser,
+  ) {
+    return this.subscribersService.create(createSubscriberDto, user);
   }
 
-
- 
-  @Post("skills")
+  @Post('skills')
   @ResponseMessage("Get Subscriber's skills")
   @SkipCheckPermission()
-  getUserSkills(@User() user:IUser){
-    return this.subscribersService.getskills(user)
+  getUserSkills(@User() user: IUser) {
+    return this.subscribersService.getskills(user);
   }
 
   @Get()
   @Public()
   findAll(
-  @Query("page") currentPage:string,
-  @Query("limit") limit:string,
-  @Query() qs:string) {
-    return this.subscribersService.findAll(+currentPage,+limit,qs);
+    @Query('page') currentPage: string,
+    @Query('limit') limit: string,
+    @Query() qs: string,
+  ) {
+    return this.subscribersService.findAll(+currentPage, +limit, qs);
   }
 
   @Get(':id')
@@ -40,9 +55,12 @@ export class SubscribersController {
     return this.subscribersService.findOne(id);
   }
   @Patch()
- @SkipCheckPermission()
-  update(@Body() updateSubscriberDto: UpdateSubscriberDto,@User() user:IUser) {
-    return this.subscribersService.update( updateSubscriberDto,user);
+  @SkipCheckPermission()
+  update(
+    @Body() updateSubscriberDto: UpdateSubscriberDto,
+    @User() user: IUser,
+  ) {
+    return this.subscribersService.update(updateSubscriberDto, user);
   }
 
   @Delete(':id')

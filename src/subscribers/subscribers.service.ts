@@ -16,13 +16,15 @@ export class SubscribersService {
     private subscriberModel: SoftDeleteModel<SubscriberDocument>,
   ) {}
   async create(createSubscriberDto: CreateSubscriberDto, user: IUser) {
-    const {name,email,skills}= createSubscriberDto
-    const isExist= await this.subscriberModel.findOne({email})
-    if(isExist){
-      throw new BadRequestException(` this is ${email} existing `)
+    const { name, email, skills } = createSubscriberDto;
+    const isExist = await this.subscriberModel.findOne({ email });
+    if (isExist) {
+      throw new BadRequestException(` this is ${email} existing `);
     }
     const newsub = this.subscriberModel.create({
-      name,email,skills,
+      name,
+      email,
+      skills,
       createdBy: {
         _id: user?._id,
         email: user?.email,
@@ -89,11 +91,13 @@ export class SubscribersService {
   }
   async getskills(user: IUser) {
     const { email } = user;
-    const skills = await this.subscriberModel.findOne({ email }, { skills: 1 }).exec();
-    if(!skills){
-      throw new BadRequestException(`Subscriber with email ${email} not found` )
+    const skills = await this.subscriberModel
+      .findOne({ email }, { skills: 1 })
+      .exec();
+    if (!skills) {
+      throw new BadRequestException(`Subscriber with email ${email} not found`);
     }
-    return skills
+    return skills;
   }
   async remove(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {

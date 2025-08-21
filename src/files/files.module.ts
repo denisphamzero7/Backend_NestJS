@@ -7,15 +7,10 @@ import { MulterConfigService } from './multer.config';
 @Module({
   controllers: [FilesController],
   providers: [FilesService],
-  imports:[
+  imports: [
     MulterModule.registerAsync({
-      useClass: MulterConfigService
-    })
-  ]
-    
-
+      useClass: MulterConfigService,
+    }),
+  ],
 })
-export class FilesModule {
-  
-
-}
+export class FilesModule {}
