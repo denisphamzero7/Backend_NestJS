@@ -28,6 +28,11 @@ export class ImportUserDto {
   @IsOptional()
   age?: number;
 
+   @ExcelColumn('Vai trò')
+  @IsOptional()
+  @IsString()
+  role?: string;
+
    @ExcelColumn('Mật khẩu')
   @IsOptional()
   password?: string;
@@ -35,5 +40,7 @@ export class ImportUserDto {
 
 
   @ExcelColumn('Công ty')
-  company: string;
+  @IsOptional() // Thêm IsOptional
+  @IsString()   // Thêm IsString
+  company?: string;
 }

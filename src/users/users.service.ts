@@ -237,14 +237,20 @@ export class UsersService {
 
     return updatedUser;
   }
+ 
 
  async findAllForExport() {
 // 1. Lấy dữ liệu gốc với populate
+ type PopulatedUser = Omit<User, 'role' | 'company'> & {
+  role?: { name: string };
+  company?: { name: string };
+  };
     const usersFromDb = await this.userModel
       .find({})
       .select('-password')
+      .populate('role', 'name')
       .populate('company', 'name')
-      .lean();
+      .lean<PopulatedUser[]>(); // <= Thêm generic type ở đây
   
     // 2. Biến đổi dữ liệu thành dạng phẳng
     const transformedUsers = usersFromDb.map(user => ({
@@ -252,6 +258,8 @@ export class UsersService {
       email: user.email,
       address: user.address,
       gender: user.gender,
+      age: user.age,
+      role:user.role?user.role?.name:'',
       company: user.company ? user.company.name : '',
     }));
     
@@ -289,6 +297,7 @@ async importUsers(dtos: ImportUserDto[]) {
         };
 
         const created = await this.userModel.create(newUser);
+        console.log('fdssfdk',created);
         createdUsers.push(created);
 
       } catch (error) {

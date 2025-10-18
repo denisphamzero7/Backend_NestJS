@@ -65,7 +65,7 @@ export class ExcelService {
   /**
    * IMPORT: Đọc dữ liệu từ buffer, validate và trả về một mảng DTOs.
    */
-  async importFromBuffer<Dto extends object>(
+   async importFromBuffer<Dto extends object>(
     buffer: Buffer,
     dto: Type<Dto>,
   ): Promise<Dto[]> {
@@ -77,13 +77,35 @@ export class ExcelService {
     if (jsonData.length === 0) {
       throw new BadRequestException('File Excel không có dữ liệu.');
     }
+    
+    const columnMapping = this.generateColumnMapping(dto);
+    // Tạo bản đồ ngược để dịch từ tên cột sang thuộc tính DTO
+    const reverseColumnMapping = Object.entries(columnMapping).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+    }, {});
+
 
     const validationErrors = [];
     const validatedDtos: Dto[] = [];
 
     for (let i = 0; i < jsonData.length; i++) {
-      const rowData = jsonData[i];
-      const dtoInstance = plainToInstance(dto, rowData);
+      const rawRowData = jsonData[i];
+      const dtoData = {};
+
+      // Dịch dữ liệu từ tên cột "bẩn" sang thuộc tính DTO
+      for (const rawHeader in rawRowData) {
+        // Làm sạch tên cột đọc từ file
+        const cleanedHeader = rawHeader.trim().replace(/\s+/g, ' ');
+        
+        // Tìm thuộc tính DTO tương ứng
+        const dtoProperty = reverseColumnMapping[cleanedHeader];
+        if (dtoProperty) {
+            dtoData[dtoProperty] = rawRowData[rawHeader];
+        }
+      }
+
+      const dtoInstance = plainToInstance(dto, dtoData);
       const errors = await validate(dtoInstance);
 
       if (errors.length > 0) {
