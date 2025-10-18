@@ -25,7 +25,7 @@ export class MailController {
   @Cron('0 10 0 * * 0') // 0 giờ 10 phút mỗi ngày
   @Get()
   @Public()
-  @ResponseMessage('Test email')
+  @ResponseMessage('Gửi mail thành công')
   async handleTestEmail() {
     const job = [
       {
@@ -65,7 +65,7 @@ export class MailController {
           };
         });
         await this.mailerService.sendMail({
-          to: 'haryphamdev@gmail.com',
+          to: 'phamngochau2000@gmail.com',
           from: '"Support Team" <support@example.com>',
           subject: 'Welcome to Nice App! Confirm your Email',
           template: 'new-job',

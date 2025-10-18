@@ -17,7 +17,6 @@ export class Company {
   @Prop()
   description: string;
 
-  // Fix: Define the type for createBy
   @Prop({ type: Object }) // Or define a sub-schema if createBy becomes more complex
   createBy: {
     _id: mongoose.Schema.Types.ObjectId;

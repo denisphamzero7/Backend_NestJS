@@ -7,12 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/decorator/customize';
 import { IUser } from 'src/users/user.interface';
 import aqp from 'api-query-params';
+import { Role, RoleDocument } from 'src/roles/schemas/role.schema';
 
 @Injectable()
 export class PermissionsService {
   constructor(
     @InjectModel(Permission.name)
     private permissionModel: SoftDeleteModel<PermissionDocument>,
+    @InjectModel(Role.name)
+    private roleModel: SoftDeleteModel<RoleDocument>,
   ) {}
 
   async create(createPermissionDto: CreatePermissionDto, @User() user: IUser) {
@@ -49,17 +52,53 @@ export class PermissionsService {
 
     const totalItems = await this.permissionModel.countDocuments(filter);
     const totalPages = Math.ceil(totalItems / defaultLimit);
-
+    // danh sách page permission
     const result = await this.permissionModel
       .find(filter, projection)
       .skip(offset)
       .limit(defaultLimit)
       .sort(sort as any)
       .populate(population)
+      .lean()
       .exec();
+    // Chuẩn bị danh sách permission id dưới dạng string, chuyển sang dạng string an toàn nếu objectid
+    const permIds = result.map((p) => p._id.toString());
+    if (permIds.length === 0) {
+      return {
+        data: result.map((p) => ({ ...p, assignedRoles: [] })),
+        pagination: {
+          totalItems,
+          totalPages,
+          currentPage: page,
+          limit: defaultLimit,
+        },
+      };
+    }
+    // lấy tất cả roles có chưa permission trong permids
+    const roles = await this.roleModel
+      .find({ permissions: { $in: permIds } })
+      .select('_id name permissions')
+      .lean() //làm giảm overhead mongoosse giup ít tốn tài nguyên
+      .exec();
+    // map permissonId -> [role]
+    console.log('danh sách role', roles);
+
+    const map = new Map<string, Array<{ _id: any; name: string }>>();
+    for (const role of roles) {
+      for (const pid of role.permissions || []) {
+        const key = pid.toString();
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)?.push({ _id: role._id, name: role.name });
+      }
+    }
+    //5, gán assignRole vào mỗi permission
+    const data = result.map((p) => ({
+      ...p,
+      assignedRoles: map.get(p._id.toString()) || [],
+    }));
 
     return {
-      data: result,
+      data,
       pagination: {
         totalItems,
         totalPages,

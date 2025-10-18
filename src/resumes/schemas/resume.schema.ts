@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
+import { Job } from 'src/jobs/schemas/job.schemas';
 
 export type ResumeDocument = HydratedDocument<Resume>;
 
@@ -16,9 +17,13 @@ export class Resume {
   @Prop()
   url: string;
 
-  @Prop()
-  job: mongoose.Schema.Types.ObjectId;
-
+  // // ====> BƯỚC 2: CẬP NHẬT LẠI HOÀN TOÀN TRƯỜNG 'job' TẠI ĐÂY <====
+  // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }) // Thêm ref: 'Job'
+  // job: mongoose.Schema.Types.ObjectId | Job; // Dùng union type
+   
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Job' })
+  job: Job;
+  
   @Prop()
   company: mongoose.Schema.Types.ObjectId;
 

@@ -22,7 +22,21 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
      'no-unused-vars': 'off',
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"},
     '@typescript-eslint/no-unused-vars': ['error'],
+      // Tắt quy tắc no-unused-vars mặc định và sử dụng phiên bản của TypeScript
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'warn', // hoặc 'error'
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
   },
 
 };

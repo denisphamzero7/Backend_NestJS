@@ -16,6 +16,7 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from './user.interface';
 import aqp from 'api-query-params';
 import { Role } from 'src/roles/schemas/role.schema';
+import { ImportUserDto } from './dto/import-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -220,4 +221,95 @@ export class UsersService {
 
     return updatedUser;
   }
+
+  async updateProfile(id: string, updateUserDto:UpdateUserDto){
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID người dùng không hợp lệ');
+    }
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .select('-password'); // Luôn loại bỏ password khỏi kết quả trả về
+
+    if (!updatedUser) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    return updatedUser;
+  }
+
+ async findAllForExport() {
+// 1. Lấy dữ liệu gốc với populate
+    const usersFromDb = await this.userModel
+      .find({})
+      .select('-password')
+      .populate('company', 'name')
+      .lean();
+  
+    // 2. Biến đổi dữ liệu thành dạng phẳng
+    const transformedUsers = usersFromDb.map(user => ({
+      name: user.name,
+      email: user.email,
+      address: user.address,
+      gender: user.gender,
+      company: user.company ? user.company.name : '',
+    }));
+    
+    // 3. Trả về dữ liệu đã được làm phẳng
+    return transformedUsers;
+  }
+async importUsers(dtos: ImportUserDto[]) {
+    const createdUsers = [];
+    const errors = [];
+
+    // Mật khẩu mặc định nếu file Excel không cung cấp
+    const defaultPassword = 'DefaultPassword123!';
+
+    for (const [index, userDto] of dtos.entries()) {
+      try {
+        // 1. Kiểm tra email đã tồn tại chưa
+        const existingUser = await this.userModel.findOne({ email: userDto.email });
+        if (existingUser) {
+          errors.push({
+            row: index + 2, // +2 để khớp với số dòng trong file Excel
+            email: userDto.email,
+            message: `Email đã tồn tại.`,
+          });
+          continue; // Bỏ qua và đi đến user tiếp theo
+        }
+
+        // 2. Xác định mật khẩu để hash: ưu tiên mật khẩu từ file, nếu không có thì dùng mặc định
+        const passwordToHash = userDto.password || defaultPassword;
+        const hashedPassword = await this.gethashpassword(passwordToHash);
+
+        // 3. Tạo user mới
+        const newUser = {
+          ...userDto, // Lấy tất cả dữ liệu từ DTO (name, email, address...)
+          password: hashedPassword,
+        };
+
+        const created = await this.userModel.create(newUser);
+        createdUsers.push(created);
+
+      } catch (error) {
+        errors.push({
+          row: index + 2,
+          email: userDto.email,
+          message: error.message,
+        });
+      }
+    }
+
+    return {
+      createdCount: createdUsers.length,
+      errors,
+      errorCount: errors.length,
+    };
+  }
+
 }
+
+
+
+
+

@@ -8,7 +8,8 @@ export type UserDocument = HydratedDocument<User>;
 export class User {
   @Prop({ required: true })
   email: string;
-
+  @Prop({ type: Date, default: null }) // <-- THÊM DÒNG NÀY
+  lastSeen: Date;
   @Prop()
   name: string;
 
@@ -49,7 +50,6 @@ export class User {
     email: string;
   };
 
-  // Fix: Define the type for deleteBy
   @Prop({ type: Object }) // Or define a sub-schema
   deleteBy: {
     _id: mongoose.Schema.Types.ObjectId;

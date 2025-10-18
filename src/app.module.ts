@@ -17,6 +17,9 @@ import { SubscribersModule } from './subscribers/subscribers.module';
 import { MailModule } from './mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { NotificationModule } from './notifications/notifications.module';
+import { MonitorlogsModule } from './monitorlogs/monitorlogs.module';
+import { ExcelModule } from './excel/excel.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -46,10 +49,14 @@ import { ThrottlerModule } from '@nestjs/throttler';
     RolesModule,
     SubscribersModule,
     MailModule,
+    MonitorlogsModule,
+    NotificationModule,
+    ExcelModule
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    
     // {
     //   provide: APP_GUARD,
     //   useClass: JwtAuthGuard,

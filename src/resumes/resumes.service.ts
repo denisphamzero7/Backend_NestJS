@@ -12,44 +12,53 @@ import { IUser } from 'src/users/user.interface';
 import { User } from 'src/decorator/customize';
 import aqp from 'api-query-params';
 import { Types } from 'mongoose';
-
+import { NotificationsGateway } from 'src/notifications/notifications.gateway';
+import { Job, JobDocument } from 'src/jobs/schemas/job.schemas';
 @Injectable()
 export class ResumesService {
   constructor(
     @InjectModel(Resume.name)
     private resumeModel: SoftDeleteModel<ResumeDocument>,
+    @InjectModel(Job.name)
+    private jobModel: SoftDeleteModel<JobDocument>,
+    private readonly notificationsGateway: NotificationsGateway
   ) {}
-  async create(createUserCvDto: CreateUserCvDto, @User() user: IUser) {
-    const { url, job, company } = createUserCvDto;
-    const { email, _id } = user;
-    const newCV = await this.resumeModel.create({
-      email,
-      url,
-      job,
-      company,
-      userId: _id,
-      status: 'PENDING',
-      createBy: {
-        _id: user._id,
-        email: user.email,
-      },
-      history: [
-        {
-          status: 'PENDING',
-          updatedAt: new Date(),
-          updatedBy: {
-            _id: user._id,
-            email: user.email,
-          },
-        },
-      ],
-    });
+   async create(createUserCvDto: CreateUserCvDto, @User() user: IUser) {
+    const { url, job, company } = createUserCvDto;
+    const { email, _id, name } = user; // Lấy thêm `name` từ user
 
-    return {
-      _id: newCV?._id,
-      createAt: newCV?.createdAt,
-    };
-  }
+    const newCV = await this.resumeModel.create({
+      email,
+      url,
+      job,
+      company,
+      userId: _id,
+      status: 'PENDING',
+      history: [
+        {
+          status: 'PENDING',
+          updatedAt: new Date(),
+          updatedBy: { _id, email },
+        },
+      ],
+      createBy: { _id, email },
+    });
+
+    // CHANGED: GỌI GATEWAY VỚI PAYLOAD CÓ CẤU TRÚC
+    const jobInfo = await this.jobModel.findById(job);
+    if (jobInfo) {
+      this.notificationsGateway.notifyNewApplication({
+        companyId: company.toString(),
+        jobTitle: jobInfo.name,
+        candidateName: name, // Sử dụng tên user thay vì email
+      });
+    }
+
+    return {
+      _id: newCV?._id,
+      createAt: newCV?.createdAt,
+    };
+  }
 
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
@@ -91,49 +100,51 @@ export class ResumesService {
   }
 
   async update(id: string, updateResumeDto: UpdateResumeDto, user: IUser) {
-    const { status } = updateResumeDto;
-    console.log('>>> Received DTO:', updateResumeDto);
-    console.log('>>> Raw status value:', updateResumeDto.status);
-    console.log('Received status:', status); // debug
+    const { status } = updateResumeDto;
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('ID của CV không hợp lệ');
+    }
 
-    if (!status || typeof status !== 'string') {
-      throw new BadRequestException(
-        'Status is required and must be a valid string',
-      );
-    }
-
-    const result = await this.resumeModel.updateOne(
-      { _id: id },
+    // IMPROVEMENT: Tối ưu hóa bằng findByIdAndUpdate
+    // Gộp 3 câu lệnh (findById, updateOne, findById) thành 1 câu lệnh duy nhất.
+    const updatedCv = await this.resumeModel.findByIdAndUpdate(
+      id,
       {
         $set: {
           status: status,
-          updatedBy: {
-            _id: user._id,
-            email: user.email,
-          },
+          updatedBy: { _id: user._id, email: user.email },
         },
         $push: {
           history: {
             status: status,
             updatedAt: new Date(),
-            updatedBy: {
-              _id: user._id,
-              email: user.email,
-            },
+            updatedBy: { _id: user._id, email: user.email },
           },
         },
       },
-      { upsert: false },
-    );
-    console.log('RESULT', result);
+      { new: true } // Tùy chọn này sẽ trả về document SAU KHI đã cập nhật
+    ).populate<{ job: JobDocument }>('job'); // Populate trực tiếp trong câu lệnh
 
-    if (result.modifiedCount === 0) {
-      throw new NotFoundException('Resume not found or nothing updated');
+    if (!updatedCv) {
+      throw new NotFoundException(`Không tìm thấy CV với id=${id}`);
     }
 
-    return {
-      message: 'Resume updated successfully',
-    };
+    // CHANGED: GỬI THÔNG BÁO SAU KHI CẬP NHẬT THÀNH CÔNG
+    
+    // 1. Thông báo cho ứng viên
+    this.notificationsGateway.notifyStatusUpdate({
+      userId: updatedCv.userId.toString(),
+      jobTitle: updatedCv.job?.name ?? 'Công việc đã bị xóa',
+      status: updatedCv.status,
+    });
+
+    // 2. Thông báo đồng bộ cho các HR trong cùng công ty
+    this.notificationsGateway.notifyCompanyOfCvUpdate(
+      updatedCv.company.toString(),
+      updatedCv
+    );
+
+    return { message: 'Cập nhật trạng thái CV thành công' };
   }
   async remove(id: string, user: IUser) {
     await this.resumeModel.updateOne(

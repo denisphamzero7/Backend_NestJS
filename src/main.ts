@@ -1,4 +1,7 @@
+// excel
+import 'reflect-metadata';
 import { NestFactory, Reflector } from '@nestjs/core';
+
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -9,9 +12,22 @@ import { TransformInterceptor } from './core/transform.interceptor';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 
+import { createClient } from 'redis'; 
+import { RedisIoAdapter } from './adapters/redis-io.adapter';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
   const configService = app.get(ConfigService);
+  // --- Cấu hình Redis Adapter ---
+ const pubClient = createClient({ 
+    url: configService.get<string>('REDIS_URL')});
+  const subClient = pubClient.duplicate();
+
+  await Promise.all([pubClient.connect(), subClient.connect()]);
+
+ app.useWebSocketAdapter(new RedisIoAdapter(app, pubClient as any, subClient as any));
+
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
   app.useGlobalInterceptors(new TransformInterceptor(reflector));

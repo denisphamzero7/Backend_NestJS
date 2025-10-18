@@ -22,7 +22,7 @@ import {
 @Controller('resumes')
 export class ResumesController {
   constructor(private readonly resumesService: ResumesService) {}
-
+  @SkipCheckPermission()
   @Post()
   create(@Body() createUserCvDto: CreateUserCvDto, @User() user: IUser) {
     return this.resumesService.create(createUserCvDto, user);
@@ -41,7 +41,7 @@ export class ResumesController {
   findOne(@Param('id') id: string) {
     return this.resumesService.findOne(id);
   }
-
+  @SkipCheckPermission()
   @Patch(':id')
   update(
     @Param('id') id: string,
@@ -56,7 +56,7 @@ export class ResumesController {
     return this.resumesService.remove(id, user);
   }
   // khỏi trùng với get by id
-
+  @SkipCheckPermission()
   @Post('by-user')
   @ResponseMessage('Get resume by user')
   getResumeByUser(@User() user: IUser) {
