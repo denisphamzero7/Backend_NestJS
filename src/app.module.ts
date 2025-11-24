@@ -20,6 +20,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { NotificationModule } from './notifications/notifications.module';
 import { MonitorlogsModule } from './monitorlogs/monitorlogs.module';
 import { ExcelModule } from './excel/excel.module';
+import { NewsModule } from './news/news.module';
+import { DocumentsModule } from './documents/documents.module';
+import { VotersModule } from './voters/voters.module';
+import { OnesignalModule } from './onesignal/onesignal.module';
+import { RealtimeuserModule } from './realtimeuser/realtimeuser.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -51,7 +56,12 @@ import { ExcelModule } from './excel/excel.module';
     MailModule,
     MonitorlogsModule,
     NotificationModule,
-    ExcelModule
+    ExcelModule,
+    NewsModule,
+    DocumentsModule,
+    VotersModule,
+    OnesignalModule,
+    RealtimeuserModule
   ],
   controllers: [AppController],
   providers: [

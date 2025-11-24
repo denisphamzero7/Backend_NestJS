@@ -126,6 +126,7 @@ export class UsersService {
       .findOne({ email: username })
       .populate({ path: 'role', select: { name: 1, permissions: 1 } });
   }
+  
   async Isvalidpassword(password: string, hash: string) {
     return compareSync(password, hash); // true
   }
@@ -150,6 +151,7 @@ export class UsersService {
       if (!user) {
         return { message: 'user not found' };
       }
+      
       return user;
     } catch (error) {
       console.error(error);
@@ -189,11 +191,18 @@ export class UsersService {
       .updateOne({ _id }, { refreshToken })
       .populate({ path: 'role', select: { name: 1, permissions: 1 } });
   };
+
   findUserByToken = async (refreshToken: string) => {
     return await this.userModel
       .findOne({ refreshToken })
       .populate({ path: 'role', select: { name: 1, permissions: 1 } });
   };
+//  async findUserByToken(token: string) {
+  
+//   return await this.userModel
+//     .findOne({ refreshToken: token })
+//     .exec(); // ✅ KHÔNG populate role ở đây
+// }
   async findByIdWithPassword(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new NotFoundException('ID không hợp lệ');

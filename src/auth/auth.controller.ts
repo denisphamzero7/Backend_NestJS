@@ -52,6 +52,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const refresh_token = request.cookies['refresh_token'];
+     console.log('🍪 Cookie from request:', refresh_token); // ← THÊM LOG
     response.clearCookie('refresh_token');
     return this.authService.procesnewToken(refresh_token, response);
   }

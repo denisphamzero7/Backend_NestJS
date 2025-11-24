@@ -48,6 +48,7 @@ async function bootstrap() {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
+    credentials: true,
   });
   //config versioning
   app.setGlobalPrefix('api');
@@ -55,8 +56,10 @@ async function bootstrap() {
     type: VersioningType.URI,
     defaultVersion: ['1', '2'],
   });
+
+   // app.use(helmet());
   await app.listen(port);
-  app.use(helmet());
+ 
   console.log(`Server is running at http://localhost:${port}`);
 }
 bootstrap();

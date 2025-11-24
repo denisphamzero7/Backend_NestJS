@@ -66,6 +66,9 @@ export class User {
 
   @Prop()
   updatedAt: Date;
+  
+  @Prop() // <--- THÊM TRƯỜNG NÀY
+  refreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

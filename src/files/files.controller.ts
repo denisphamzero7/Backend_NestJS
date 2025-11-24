@@ -11,6 +11,7 @@ import {
   ParseFilePipeBuilder,
   HttpStatus,
   UseFilters,
+  Headers,
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { CreateFileDto } from './dto/create-file.dto';
@@ -44,9 +45,13 @@ export class FilesController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   @UseFilters(new HttpExceptionFilter())
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
+  uploadFile(@UploadedFile() file: Express.Multer.File,
+  @Headers('folder_type') folderType: string,) {
+    const folder = folderType ?? 'default';
+    const accessUrl = `/images/${folder}/${file.filename}`;
     return {
       filName: file.filename,
+      Url: accessUrl,
     };
   }
 

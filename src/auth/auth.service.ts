@@ -31,13 +31,16 @@ export class AuthService {
   }
 
   async login(user: IUser, response: Response) {
-    const { _id, name, email, role } = user;
+    const { _id, name, email,gender,phone,address,role } = user;
     const payload = {
       iss: 'From server',
       sub: 'token login',
       _id,
       name,
       email,
+      gender,
+      phone,
+      address,
       role,
     };
     const refresh_token = this.createRefreshToken(payload);
@@ -47,11 +50,21 @@ export class AuthService {
     response.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       maxAge: ms(this.configService.get<string>('REFRESH_TOKEN_EXPIRE')),
+       sameSite: 'lax', // ✅ THÊM: Cho phép cookie gửi trong same-site requests
+       secure: false, // ✅ Set = true nếu dùng HTTPS
+       path: '/', // ✅ THÊM: Cookie có hiệu lực cho toàn bộ domain
     });
     return {
       access_token: this.jwtService.sign(payload),
       refresh_token,
-      user: { _id, name, email, role },
+      user: { 
+      _id,
+      name,
+      email,
+      gender,
+      phone,
+      address,
+      role, },
     };
   }
   async register(user: RegisterUserDto) {
@@ -66,60 +79,76 @@ export class AuthService {
     });
     return refresh_token;
   };
-  procesnewToken = async (refreshToken: string, response: Response) => {
-    try {
-      // Xác thực token
-      this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
-      });
+procesnewToken = async (refreshToken: string, response: Response) => {
+  try {
+    // Kiểm tra xem refresh token có tồn tại không
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token không tồn tại');
+    }
 
-      const user = await this.usersService.findUserByToken(refreshToken);
+    // Xác thực token
+    this.jwtService.verify(refreshToken, {
+      secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
+    });
 
-      if (!user) {
-        throw new UnauthorizedException(
-          'User không tồn tại hoặc token không đúng',
-        );
-      }
+    const user = await this.usersService.findUserByToken(refreshToken);
 
-      const { _id, name, email, role } = user;
-      const payload = {
-        iss: 'From server',
-        sub: 'token refresh',
+    if (!user) {
+      throw new UnauthorizedException(
+        'User không tồn tại hoặc token không đúng',
+      );
+    }
+
+    const {
+      _id,
+      name,
+      email,
+      gender,
+      phone,
+      address,
+      role,
+    } = user;
+    
+    const payload = {
+      iss: 'From server',
+      sub: 'token refresh',
+      _id,
+      name,
+      email,
+      gender,
+      phone,
+      address,
+      role,
+    };
+
+    const refresh_token = this.createRefreshToken(payload);
+
+    await this.usersService.updateUserToken(refresh_token, _id.toString());
+
+    // Gán lại cookie mới
+    response.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      maxAge: ms(this.configService.get<string>('REFRESH_TOKEN_EXPIRE')), // ✅ ĐÃ SỬA
+    });
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      refresh_token,
+      user: {
         _id,
         name,
         email,
+        gender,
+        phone,
+        address,
         role,
-      };
-
-      const refresh_token = this.createRefreshToken(payload);
-
-      await this.usersService.updateUserToken(refresh_token, _id.toString());
-
-      // // Xoá token cũ
-      // response.clearCookie('refresh_token');
-
-      // Gán lại cookie mới
-      response.cookie('refresh_token', refresh_token, {
-        httpOnly: true,
-        maxAge:
-          ms(this.configService.get<string>('REFRESH_TOKEN_EXPIRE')) * 1000,
-      });
-
-      return {
-        access_token: this.jwtService.sign(payload),
-        refresh_token,
-        user: {
-          _id,
-          name,
-          email,
-          role,
-        },
-      };
-    } catch (error) {
-      console.error('Refresh token error:', error.message);
-      throw new UnauthorizedException('Refresh token error');
-    }
-  };
+      },
+    };
+  } catch (error) {
+    console.error('Refresh token error:', error.message);
+    throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn');
+  }
+};
   async logout(response: Response, user: IUser) {
     await this.usersService.updateUserToken('', user._id.toString());
     response.clearCookie('refresh_token');
