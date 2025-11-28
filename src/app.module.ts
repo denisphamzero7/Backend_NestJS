@@ -25,6 +25,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { VotersModule } from './voters/voters.module';
 import { OnesignalModule } from './onesignal/onesignal.module';
 import { RealtimeuserModule } from './realtimeuser/realtimeuser.module';
+import { WeatherModule } from './weather/weather.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -61,7 +62,8 @@ import { RealtimeuserModule } from './realtimeuser/realtimeuser.module';
     DocumentsModule,
     VotersModule,
     OnesignalModule,
-    RealtimeuserModule
+    RealtimeuserModule,
+    WeatherModule
   ],
   controllers: [AppController],
   providers: [
