@@ -6,32 +6,43 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import aqp from 'api-query-params';
 import { OnesignalService } from 'src/onesignal/onesignal.service';
+import { NotificationService } from 'src/notifications/notification.service';
+
+
+// 1. Import User Model để inject
+import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { NotificationType } from 'src/notifications/enums/notification-type.enum';
 
 @Injectable()
 export class VotersService {
   constructor(
-   @InjectModel(Voter.name)
-   private voterModel: SoftDeleteModel<VoterDocument>,
-   private oneSignalService: OnesignalService,
-  ){}
+    @InjectModel(Voter.name)
+    private voterModel: SoftDeleteModel<VoterDocument>,
+
+    // 2. Inject UserModel để tìm người đang thực hiện hành động
+    @InjectModel(User.name)
+    private userModel: SoftDeleteModel<UserDocument>,
+
+    private oneSignalService: OnesignalService,
+    private notificationService: NotificationService
+  ) {}
+
   async create(createVoterDto: CreateVoterDto) {
-    const {cccd,username,date,sex}= createVoterDto;
+    const { cccd, username, date, sex } = createVoterDto;
     const newVoter = await this.voterModel.create({
       cccd,
       username,
       date,
       sex,
-      status:false
-    })
+      status: false
+    });
     return {
-      data:newVoter
+      data: newVoter
     }
-
   }
 
-   async findAll(currentPage: number, limit: number, qs: string) { // Viết lại hoàn toàn
+  async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
-
     delete filter.page;
     delete filter.limit;
 
@@ -60,17 +71,16 @@ export class VotersService {
       },
     };
   }
-  
 
- async scanVoterCard(scanVoterDto: ScanVoterDto, loggedInUserId: string) { 
+  async scanVoterCard(scanVoterDto: ScanVoterDto, loggedInUserId: string) {
     const { cccd } = scanVoterDto;
-    console.log('CCCD được quét:', cccd);
-    console.log('User ID đang quét:', loggedInUserId); // Log để kiểm tra
 
     // 1. Tìm kiếm cử tri
     const voter = await this.voterModel.findOne({ cccd: cccd });
-    console.log('ccd:', voter);
     
+    // Tìm user đang thao tác để lưu vào trường createBy của notification
+    const currentUser = await this.userModel.findById(loggedInUserId);
+
     if (!voter) {
       return {
         message: 'Cử tri không tồn tại trong danh sách.',
@@ -79,73 +89,97 @@ export class VotersService {
       };
     }
 
-    // 2. Kiểm tra status (ĐÃ SỬA)
+    // 2. Trường hợp: Cử tri ĐÃ BẦU trước đó
     if (voter.status === true) {
-      
-      // --- BƯỚC 2.1: THÊM LOGIC GỬI THÔNG BÁO "ĐÃ BẦU" ---
+      const heading = 'Cảnh Báo: Cử tri đã bỏ phiếu';
+      const content = `Cử tri ${voter.username} (CCCD: ${voter.cccd}) đã đi bầu trước đó. Vui lòng kiểm tra lại.`;
+
+      // 2.1 Gửi OneSignal
       try {
-        const heading = 'Cử tri đã bỏ phiếu';
-        const content = `Cử tri ${voter.username} (CCCD: ${voter.cccd}) đã đi bầu.`;
-        
         await this.oneSignalService.sendNotificationToUser(
           loggedInUserId,
           heading,
           content,
-          { screen: 'voting_history', voter_id: voter._id.toString() } 
+          { screen: 'voting_history', voter_id: voter._id.toString() }
         );
       } catch (error) {
-        console.error('Lỗi khi gửi thông báo (đã bầu):', error);
+        console.error('Lỗi OneSignal (đã bầu):', error);
       }
-      // --- KẾT THÚC SỬA ĐỔI ---
 
-      // Vẫn return như cũ để báo cho app biết
+      // 2.2 LƯU DB (Thêm đoạn này để lưu thông báo lỗi)
+      if (currentUser) {
+        await this.notificationService.create(
+          {
+            title: heading,
+            content: content,
+            userId: loggedInUserId, // Người nhận thông báo
+            type: NotificationType.VOTE_WARNING, // Loại thông báo cảnh báo
+            isRead: false
+          },
+          currentUser as any // Người tạo thông báo (hệ thống/chính user đó)
+        );
+      }
+
       return {
         message: 'Cử tri này đã xác nhận đi bầu.',
-        isSuccess: true,
+        isSuccess: true, // Hoặc false tùy logic app bạn muốn hiển thị màu đỏ hay xanh
         data: voter,
       };
     }
 
     // 3. Cập nhật status (Chỉ chạy khi status là false)
     const updatedVoter = await this.voterModel.findByIdAndUpdate(
-      voter._id, 
+      voter._id,
       { status: true },
       { new: true }
     );
-    
-    // 4. GỌI ONESIGNAL (Chỉ chạy khi status là false)
+
+    // 4. Trường hợp: BẦU THÀNH CÔNG
     if (updatedVoter) {
+      const heading = 'Xác Nhận Bầu Cử Thành Công';
+      const content = `Bạn vừa xác nhận thành công cho cử tri ${updatedVoter.username} (CCCD: ${updatedVoter.cccd}).`;
+
+      // 4.1 Gửi OneSignal
       try {
-        const heading = 'Xác Nhận Bầu Cử Thành Công';
-        const content = `Bạn vừa xác nhận thành công cho cử tri ${updatedVoter.username} (CCCD: ${updatedVoter.cccd}).`;
-        
         await this.oneSignalService.sendNotificationToUser(
-          loggedInUserId, 
+          loggedInUserId,
           heading,
           content,
-          { screen: 'voting_history', voter_id: updatedVoter._id.toString() } 
+          { screen: 'voting_history', voter_id: updatedVoter._id.toString() }
         );
       } catch (error) {
-        console.error('Lỗi khi gửi thông báo (bầu mới):', error);
+        console.error('Lỗi OneSignal (thành công):', error);
+      }
+
+      // 4.2 LƯU DB (Sửa lại tham số truyền vào cho đúng)
+      if (currentUser) {
+        try {
+          await this.notificationService.create(
+            {
+              title: heading,
+              content: content,
+              userId: loggedInUserId,
+              type: NotificationType.VOTE_SUCCESS,
+              isRead: false
+            },
+            currentUser as any
+          );
+        } catch (error) {
+          console.error('Lỗi lưu DB Notification:', error);
+        }
       }
     }
-    
-    // 5. Trả về (Chỉ chạy khi status là false)
+
+    // 5. Trả về kết quả
     return {
       message: 'Xác nhận cử tri thành công. Status đã được cập nhật thành True.',
       isSuccess: true,
       data: updatedVoter,
     };
   }
-  findOne(id: number) {
-    return `This action returns a #${id} voter`;
-  }
-
-  update(id: number, updateVoterDto: UpdateVoterDto) {
-    return `This action updates a #${id} voter`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} voter`;
-  }
+  
+  // Các hàm giữ nguyên
+  findOne(id: number) { return `This action returns a #${id} voter`; }
+  update(id: number, updateVoterDto: UpdateVoterDto) { return `This action updates a #${id} voter`; }
+  remove(id: number) { return `This action removes a #${id} voter`; }
 }
