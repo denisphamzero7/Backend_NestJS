@@ -26,6 +26,7 @@ import { VotersModule } from './voters/voters.module';
 import { OnesignalModule } from './onesignal/onesignal.module';
 import { RealtimeuserModule } from './realtimeuser/realtimeuser.module';
 import { WeatherModule } from './weather/weather.module';
+import { Schema } from 'mongoose';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -38,7 +39,7 @@ import { WeatherModule } from './weather/weather.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('DATABASE'),
-        connectionFactory: (connection) => {
+        connectionFactory: (connection: { plugin: (arg0: (schema: Schema) => void) => void; }) => {
           connection.plugin(softDeletePlugin);
           return connection;
         },
