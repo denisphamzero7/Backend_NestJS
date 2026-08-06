@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Service Redis
+  redis:
+    image: redis:alpine
+    container_name: nestjs_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # Service MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: nestjs_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: always
+
+  # Service NestJS App
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs_api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - mongodb
+    env_file:
+      - .env
+    environment:
+      - PORT=8080
+      # Đè cấu hình DATABASE trong file .env để kết nối tới container mongodb cục bộ
+      # DATABASE=mongodb://mongodb:27017/NestJS
+      # Đè cấu hình REDIS_URL trong file .env để kết nối tới container redis cục bộ
+      - REDIS_URL=redis://redis:6379
+    restart: always
+
+volumes:
+  mongodb_data:
+
