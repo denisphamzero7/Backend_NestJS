@@ -54,7 +54,7 @@ export class OnesignalService {
       );
       this.logger.log(`OneSignal notification sent to ${externalUserId}: ${response.data.id}`);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error sending OneSignal notification to ${externalUserId}`, error.response?.data || error.message);
       throw error;
     }
