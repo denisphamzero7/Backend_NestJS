@@ -26,6 +26,9 @@ async function bootstrap() {
   const pubClient = createClient({ 
     url: redisUrl,
     socket: {
+      tls: true,
+      rejectUnauthorized: false,
+      connectTimeout: 5000,
       reconnectStrategy: (retries) => {
         if (retries > 3) {
           console.error('Redis connection failed: Max retries reached.');
