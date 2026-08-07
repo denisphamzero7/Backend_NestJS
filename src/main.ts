@@ -20,13 +20,37 @@ async function bootstrap() {
   
   const configService = app.get(ConfigService);
   // --- Cấu hình Redis Adapter ---
- const pubClient = createClient({ 
-    url: configService.get<string>('REDIS_URL')});
+  const redisUrl = configService.get<string>('REDIS_URL');
+  console.log(`Connecting to Redis at: ${redisUrl}`);
+  
+  const pubClient = createClient({ 
+    url: redisUrl,
+    socket: {
+      reconnectStrategy: (retries) => {
+        if (retries > 3) {
+          console.error('Redis connection failed: Max retries reached.');
+          return new Error('Redis connection failed after 3 retries');
+        }
+        console.log(`Redis reconnect attempt #${retries}...`);
+        return 1000;
+      }
+    }
+  });
+  
+  pubClient.on('error', (err) => console.error('Redis PubClient Error:', err));
+  
   const subClient = pubClient.duplicate();
+  subClient.on('error', (err) => console.error('Redis SubClient Error:', err));
 
-  await Promise.all([pubClient.connect(), subClient.connect()]);
+  try {
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    console.log('Successfully connected to Redis!');
+  } catch (err) {
+    console.error('Failed to establish connection to Redis:', err);
+    throw err;
+  }
 
- app.useWebSocketAdapter(new RedisIoAdapter(app, pubClient as any, subClient as any));
+  app.useWebSocketAdapter(new RedisIoAdapter(app, pubClient as any, subClient as any));
 
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
